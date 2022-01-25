@@ -52,6 +52,7 @@ network={
 最后需要注意：
 
 1. 如果不行，试试直接把这个文件直接放到： `/etc/wpa_supplicant/wpa_supplicant.conf`
+2. 也有人说应该给wpa_supplicant.conf文件加上权限： `sudo chmod a+x wpa_supplicant.conf`
 2. 如果不行，可能是wifi没打开，那就只能先用有线连上了
 
 ### **小结**
