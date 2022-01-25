@@ -79,6 +79,18 @@ Ubuntu系统是不自带这个的（带了就跳过这一步），需要自行�
 ### **小结**
 到这里如果摄像头启动正常，执行 `ls /dev/video*` 就能看到video0这个设备了（或者执行 `vcgencmd get_camera` 能看到 `supported=1 detected=1` 也一样）
 
+如果还不行：
+1. 试试加入驱动模块进去： `sudo vim /etc/modules` 加入一行 `bcm2835-v4l2`
+```
+# /etc/modules: kernel modules to load at boot time.
+#
+# This file contains the names of kernel modules that should be loaded
+# at boot time, one per line. Lines beginning with "#" are ignored.
+bcm2835-v4l2
+```
+2. 上面说的修改配置后都要求重启才能生效
+3. 如果还不行可能是硬件连接问题或者静电损坏了摄像头（很容易出现这个问题，安装时候要注意防静电）
+
 
 ## PS
 1. `raspi-config` 中也可以设置wifi
