@@ -5,3 +5,52 @@
 @Author      :xuhao
 '''
 
+import cv2
+from http import server
+
+import time
+
+video = cv2.VideoCapture(0)
+if video is None:
+    print ("Couldn't open camera...")
+    exit(0)
+
+def GetJpegFrame(vcap):
+    suc, img=vcap.read()
+    if not suc:
+        print ("Get image error")
+        return None
+    ret, jpg = cv2.imencode('.jpg', img)
+    print ("cam get img:", img.shape)
+    return jpg.tobytes()
+
+def GetFramePacket(vcap):
+    frame=GetJpegFrame(vcap)
+    return b'--frame\r\n   Content-Type: image/jpeg\r\n\r\n '+frame+b'\r\n\r\n'
+
+class HTTPHandler(server.BaseHTTPRequestHandler):
+
+    def do_GET(self):
+        if self.path == "/video":
+            self.send_response(200)
+            self.send_header('Content-Type','multipart/x-mixed-replace; boundary=frame')
+            self.end_headers()
+            while 1:
+                self.wfile.write(GetFramePacket(video) )
+                self.wfile.write(b'\r\n')
+                time.sleep(1)
+        else:
+            self.send_error(404)
+            self.end_headers()
+
+print ("starting http server...")
+
+try:
+    addr=('', 8080)
+    ser=server.HTTPServer(addr, HTTPHandler)
+    ser.serve_forever()
+except:
+    print ("Done serve")
+finally:
+    video.release()
+
