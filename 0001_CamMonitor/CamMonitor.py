@@ -32,7 +32,8 @@ def gen(camera):
 
 def GetFramePacket(vcap):
     frame=GetJpegFrame(vcap)
-    return b'--frame\r\n'+b'Content-Type: image/jpeg\r\n\r\n '+frame+b'\r\n\r\n'
+    #这里注意下面帧构造里面不能有多余空格尤其是frame前面
+    return b'--frame\r\n'+b'Content-Type: image/jpeg\r\n\r\n'+frame+b'\r\n\r\n'
 
 class HTTPHandler(server.BaseHTTPRequestHandler):
 
@@ -42,8 +43,8 @@ class HTTPHandler(server.BaseHTTPRequestHandler):
             self.send_header('Content-Type','multipart/x-mixed-replace; boundary=frame')
             self.end_headers()
             while 1:
-                #self.wfile.write(GetFramePacket(video) )
-                self.wfile.write(next(cam) )
+                self.wfile.write(GetFramePacket(video) )
+                #self.wfile.write(next(cam) )
                 self.wfile.write(b'\r\n')
                 #time.sleep(1)
         else:
