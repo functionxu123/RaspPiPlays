@@ -115,7 +115,7 @@ class CutThread (threading.Thread):
 
             threadLock.release()
 
-            if lastframe!=None:
+            if lastframe is not  None:
                 if IsDiff(lastframe, img, self.thresh_pixel):
                     if vid is None:
                         fourcc = cv2.VideoWriter_fourcc(*'XVID') #  *'MJPG'    *'FLV1'
