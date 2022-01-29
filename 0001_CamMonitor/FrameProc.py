@@ -35,8 +35,8 @@ video.get(cv2.CAP_PROP_HUE)
 video.get(cv2.CAP_PROP_EXPOSURE)
 '''
 
-frame_w=video.get(cv2.CAP_PROP_FRAME_WIDTH)
-frame_h=video.get(cv2.CAP_PROP_FRAME_HEIGHT)
+frame_w=int(video.get(cv2.CAP_PROP_FRAME_WIDTH))
+frame_h=int(video.get(cv2.CAP_PROP_FRAME_HEIGHT))
 vfps=video.get(cv2.CAP_PROP_FPS)
 
 STOREADDR='./cutvideos'
