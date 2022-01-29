@@ -51,7 +51,7 @@ def GetJpegFrame(vcap):
     if not suc:
         print ("Get image error")
         return None
-    print ("cam get img:", img.shape)
+    #print ("cam get img:", img.shape)
     return img
 
 def GetJpegBytes(img):
@@ -60,12 +60,46 @@ def GetJpegBytes(img):
     return jpg.tobytes() 
 
 
+    
+def pHash(img):
+    """
+    get image pHash value
+    """
+
+    # 缩放图片为32x32灰度图片
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    img = cv2.resize(img, (32, 32), interpolation=cv2.INTER_CUBIC)
+
+    # 创建二维列表
+    h, w = img.shape[:2]
+    vis0 = np.zeros((h,w), np.float32)
+    vis0[:h,:w] = img
+
+    # 二维Dct变换
+    vis1 = cv2.dct(cv2.dct(vis0))
+    vis1 = vis1[:8, :8]
+
+    # 把二维list变成一维list
+    img_list = vis1.flatten().tolist()
+
+    # 计算均值, 得到哈希值
+    avg = sum(img_list) * 1. / 64
+    avg_list = [0 if i < avg else 1 for i in img_list]
+    # print(avg_list)
+    return avg_list
+def hanming_dist(s1, s2):
+    """
+    求汉明距离
+    """
+    # print(s1, s2)
+    return sum([ch1 != ch2 for ch1, ch2 in zip(s1, s2)])
+
 def IsDiff(frame1, frame2, thresh=50) -> bool:
-    tep = abs(frame1-frame2)
-    mtep=np.max(tep)
-    return mtep>thresh
-    
-    
+    phash1 = pHash(frame1)
+    phash2 = pHash(frame2)
+    hamdis=hanming_dist(phash1, phash2) 
+    print ("hamdis: ", hamdis)
+    return hamdis > thresh
 
 # use flask to watch video 
 app = Flask(__name__)
@@ -87,11 +121,11 @@ def video_feed():
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
 class CutThread (threading.Thread):
-    def __init__(self, thresh_pixel=50, thresh_gap=100):
+    def __init__(self, thresh_pixel=50, thresh_lenth_time_s=5):
         threading.Thread.__init__(self)
         self.thresh_pixel= thresh_pixel
-        self.thresh_gap=thresh_gap
         self.stop=False
+        self.thresh_lenth_time_s=thresh_lenth_time_s
 
     # fun to find moving action in video to save video
     def run(self):
@@ -99,6 +133,7 @@ class CutThread (threading.Thread):
         vid=None
         lastframe=None
         vname=''
+        videolen=0
 
         while not self.stop:
             img = GetJpegFrame(video)
@@ -116,16 +151,19 @@ class CutThread (threading.Thread):
             threadLock.release()
 
             if lastframe is not  None:
-                if IsDiff(lastframe, img, self.thresh_pixel):
+                if  (vid is not None and
+                        videolen/vfps<=self.thresh_lenth_time_s) or IsDiff(lastframe, img, self.thresh_pixel):
                     if vid is None:
                         fourcc = cv2.VideoWriter_fourcc(*'XVID') #  *'MJPG'    *'FLV1'
-                        vname=op.join(STOREADDR, dt_ms())
+                        vname=op.join(STOREADDR, dt_ms())+".avi"
                         vid = cv2.VideoWriter(vname, fourcc, vfps, (frame_w,frame_h),True)
+                        videolen=0
                         print ("New video: ", vname)
                     vid.write(img)
+                    videolen+=1
                 else:
                     if vid is not None:
-                        vid.realease()
+                        vid.release()
                         vid=None
                         print ("Video %s finished"%vname)
             lastframe=img
@@ -139,14 +177,15 @@ class CutThread (threading.Thread):
 
 
 if __name__ == '__main__':
-    thre=CutThread(50, 100)
+    thre=CutThread(1, 5)
     thre.start()
 
     try:
         app.run(host='0.0.0.0', port=8080, threaded=True)
     except:
-        thre.stop()
+        pass
     finally:
+        thre.stopthread()
         video.release()
         thre.join()
         
