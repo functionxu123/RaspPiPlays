@@ -79,13 +79,14 @@ def pHash(img):
 
     # 二维Dct变换
     vis1 = cv2.dct(cv2.dct(vis0))
-    vis1 = vis1[:8, :8]
+    vis_len=12
+    vis1 = vis1[:vis_len, :vis_len]
 
     # 把二维list变成一维list
     img_list = vis1.flatten().tolist()
 
     # 计算均值, 得到哈希值
-    avg = sum(img_list) * 1. / 64
+    avg = np.mean(img_list)
     avg_list = [0 if i < avg else 1 for i in img_list]
     # print(avg_list)
     return avg_list
