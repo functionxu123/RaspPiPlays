@@ -104,7 +104,7 @@ def IsDiff(frame1, frame2, thresh=50) -> bool:
     phash1 = pHash(frame1)
     phash2 = pHash(frame2)
     hamdis = hanming_dist(phash1, phash2)
-    #print("hamdis: ", hamdis)
+    # print("hamdis: ", hamdis)
     return hamdis > thresh
 
 
@@ -190,7 +190,7 @@ class CutThread(threading.Thread):
 
 
 if __name__ == '__main__':
-    thre = CutThread(1, 5)
+    thre = CutThread(4, 5)
     thre.start()
 
     try:
