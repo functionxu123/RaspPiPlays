@@ -4,8 +4,8 @@
 @Date     :2022/02/05 15:27:33
 @Author      :xuhao
 '''
-from email.charset import add_codec
-import os
+import os,sys
+sys.path.append("..")
 import os.path as op
 import argparse
 import json
@@ -17,6 +17,7 @@ from multiprocessing import Array
 import ctypes, copy
 import selectors
 from time import sleep
+from common.common import MythreadBase, BUFFER_SIZE
 
 # 含微秒的日期时间 2018-09-06_21:54:46.205213
 dt_ms = lambda: datetime.datetime.now().strftime('%Y-%m-%d_%H:%M:%S.%f')
@@ -41,7 +42,6 @@ PORT2PORT = {int(x): int(PMAPS[x]) for x in PMAPS}
 # init sockets
 PORT2SOCK = {}
 HOST = ''  #socket.INADDR_ANY
-BUFFER_SIZE = 1024*2
 
 def initsock():
     # socket.setdefaulttimeout(2)
@@ -69,36 +69,6 @@ def initsock():
 # accept thread
 threadLock_PORT2CON = threading.Lock()
 PORT2CONS = {}
-
-class MythreadBase(threading.Thread):
-    def __init__(self):
-        threading.Thread.__init__(self)
-        self.stop_thread = False
-    
-    def run(self):
-        pass
-
-    def get_id(self): 
-		# returns id of the respective thread 
-        if hasattr(self, '_thread_id'): 
-            return self._thread_id 
-        for id, thread in threading._active.items(): 
-            if thread is self: return id
-        return -1
-    
-    def stop(self):
-        print("Stoping Thread: ", self.getName(), " PID: ", os.getpid())
-
-        thread_id = self.get_id() 
-        #给线程发过去一个exceptions响应
-        res = ctypes.pythonapi.PyThreadState_SetAsyncExc(thread_id, ctypes.py_object(SystemExit)) 
-        self.stop_thread = True
-        if res == 0:
-            #raise ValueError("invalid thread id")
-            print ("Invalid thread id: ", thread_id)
-        elif res != 1: 
-            ctypes.pythonapi.PyThreadState_SetAsyncExc(thread_id, None) 
-            print('Exception raise failure')
         
 
 class AcceptThread(MythreadBase):
@@ -206,55 +176,61 @@ class SendThread(MythreadBase):
 
     # fun to handle fd send/recv
     def run(self):
-        print ("Thread: ", self.getName(), " -> Starting SendThread: ",self.listen_port, " --> ", self.send_port)
-        while not self.stop_thread:
-            # client not connected
-            if self.listen_port not in PORT2CONS or self.send_port not in PORT2CONS: 
-                sleep(1)
-                continue
-
-            threadLock_PORT2CON.acquire()
-            tep_listen_socks= PORT2CONS[self.listen_port][:]   # copy.deepcopy(PORT2CONS[self.listen_port])
-            tep_send_socks= PORT2CONS[self.send_port][:]   # copy.deepcopy(PORT2CONS[self.send_port])
-            threadLock_PORT2CON.release()
-
-            if len(tep_listen_socks)<=0 or len(tep_send_socks)<=0: 
-                sleep(1)
-                continue
-
-            # register all income sockets
-            for soc in tep_listen_socks:
-                try:
-                    self.select_sock.register(soc, selectors.EVENT_READ, self.listen_port)
-                except:
+        try:
+            print ("Thread: ", self.getName(), " -> Starting SendThread: ",self.listen_port, " --> ", self.send_port)
+            while not self.stop_thread:
+                # client not connected
+                if self.listen_port not in PORT2CONS or self.send_port not in PORT2CONS: 
+                    sleep(1)
                     continue
-                finally:
-                    pass
 
-            events = self.select_sock.select(1)
-            for key, mask in events:
-                oriport = key.data
-                conn=key.fileobj
-                data=None
-                try:
-                    data = conn.recv(BUFFER_SIZE)
-                except:
-                    data=None
+                threadLock_PORT2CON.acquire()
+                tep_listen_socks= PORT2CONS[self.listen_port][:]   # copy.deepcopy(PORT2CONS[self.listen_port])
+                tep_send_socks= PORT2CONS[self.send_port][:]   # copy.deepcopy(PORT2CONS[self.send_port])
+                threadLock_PORT2CON.release()
 
-                print ("Recv from ", self.listen_port, " Got: ", len(data) if data else data)
-                if not data:
-                    self.closesock(conn)
+                if len(tep_listen_socks)<=0 or len(tep_send_socks)<=0: 
+                    sleep(1)
                     continue
-                
-                for sp in PORT2CONS[self.send_port]:
+
+                # register all income sockets
+                for soc in tep_listen_socks:
                     try:
-                        sret=sp.sendall(data)
-                        if sret is None:
-                            print ("Send to port socket ", self.send_port, " Success")
-                        else:
-                            print ("Send to port socket ", self.send_port, " Failed : ", sret)
+                        self.select_sock.register(soc, selectors.EVENT_READ, self.listen_port)
                     except:
                         continue
+                    finally:
+                        pass
+
+                events = self.select_sock.select(1)
+                for key, mask in events:
+                    oriport = key.data
+                    conn=key.fileobj
+                    data=None
+                    try:
+                        data = conn.recv(BUFFER_SIZE)
+                    except:
+                        data=None
+
+                    print ("Recv from ", self.listen_port, " Got: ", len(data) if data else data)
+                    if not data:
+                        self.closesock(conn)
+                        continue
+                    
+                    for sp in PORT2CONS[self.send_port]:
+                        try:
+                            sret=sp.sendall(data)
+                            if sret is None:
+                                print ("Send to port socket ", self.send_port, " Success")
+                            else:
+                                print ("Send to port socket ", self.send_port, " Failed : ", sret)
+                        except:
+                            continue
+        finally:
+            print ("SendThread %s closing..."%self.getName())
+            self.select_sock.close()
+
+            print ("SendThread %s Stoped..."%self.getName())
             
             
 
