@@ -83,7 +83,8 @@ class SendThread(MythreadBase):
     def tryconnect(self, sock, ipport):
         if self.connected: return True
         ret = sock.connect_ex(ipport)
-        if ret != 0:
+        # ErrorCode:  106 : Transport endpoint is already connected
+        if ret != 0 and ret!=106:
             print("Trying Connecting to ", ipport, " ErrorCode: ", ret, ":", os.strerror(ret))
             return False
         return True
