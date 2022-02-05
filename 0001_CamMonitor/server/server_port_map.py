@@ -33,7 +33,8 @@ args = parser.parse_args()
 
 
 # port info
-PMAPS = json.load(args.configfile)
+with open(args.configfile, 'r') as f:
+    PMAPS = json.load(f)
 
 PORT2PORT = {int(x): int(PMAPS[x]) for x in PMAPS}
 
@@ -83,19 +84,22 @@ class MythreadBase(threading.Thread):
             return self._thread_id 
         for id, thread in threading._active.items(): 
             if thread is self: return id
+        return -1
     
     def stop(self):
-        self.stop_thread = True
         print("Stoping Thread: ", self.getName(), " PID: ", os.getpid())
 
         thread_id = self.get_id() 
         #给线程发过去一个exceptions响应
         res = ctypes.pythonapi.PyThreadState_SetAsyncExc(thread_id, ctypes.py_object(SystemExit)) 
+        self.stop_thread = True
         if res == 0:
-            raise ValueError("invalid thread id")
+            #raise ValueError("invalid thread id")
+            print ("Invalid thread id: ", thread_id)
         elif res != 1: 
             ctypes.pythonapi.PyThreadState_SetAsyncExc(thread_id, None) 
             print('Exception raise failure')
+        
 
 class AcceptThread(MythreadBase):
 
@@ -110,6 +114,7 @@ class AcceptThread(MythreadBase):
 
     # function to handle accept
     def run(self):
+        print ("Thread: ", self.getName()," -> Listening on port: ", [x for x in  self.port2socket])
         try:
             while (not self.stop_thread):
                 events = self.select_sock.select(None)
@@ -125,6 +130,7 @@ class AcceptThread(MythreadBase):
                     PORT2CONS[oriport].append(con)
                     threadLock_PORT2CON.release()                
         finally:
+            print ("AcceptThread closing...")
             self.select_sock.close()
             for i in PORT2CONS:
                 for j in PORT2CONS[i]:
@@ -133,7 +139,7 @@ class AcceptThread(MythreadBase):
             for port in self.port2socket:
                 self.port2socket[port].close()
 
-            print ("Thread: ", self.getName(), " Stoped")
+            print ("AcceptThread: ", self.getName(), " Stoped")
 
 
 
@@ -182,6 +188,7 @@ class SendThread(MythreadBase):
         self.initsel()
     
     def initsel(self):
+        if self.listen_port not in PORT2CONS: return
         threadLock_PORT2CON.acquire()
         for sock in PORT2CONS[self.listen_port]:
             self.select_sock.register(sock, selectors.EVENT_READ, self.listen_port)
@@ -199,19 +206,21 @@ class SendThread(MythreadBase):
 
     # fun to handle fd send/recv
     def run(self):
+        print ("Thread: ", self.getName(), " -> Starting SendThread: ",self.listen_port, " --> ", self.send_port)
         while not self.stop_thread:
             # client not connected
-            if self.listen_port not in PORT2CONS : continue
-            if self.send_port not in PORT2CONS : continue
-
+            if self.listen_port not in PORT2CONS or self.send_port not in PORT2CONS: 
+                sleep(1)
+                continue
 
             threadLock_PORT2CON.acquire()
             tep_listen_socks= PORT2CONS[self.listen_port][:]   # copy.deepcopy(PORT2CONS[self.listen_port])
             tep_send_socks= PORT2CONS[self.send_port][:]   # copy.deepcopy(PORT2CONS[self.send_port])
             threadLock_PORT2CON.release()
 
-            if len(tep_listen_socks)<=0: continue
-            if len(tep_send_socks)<=0: continue
+            if len(tep_listen_socks)<=0 or len(tep_send_socks)<=0: 
+                sleep(1)
+                continue
 
             # register all income sockets
             for soc in tep_listen_socks:
@@ -222,12 +231,17 @@ class SendThread(MythreadBase):
                 finally:
                     pass
 
-            events = self.select_sock.select(0)
+            events = self.select_sock.select(1)
             for key, mask in events:
                 oriport = key.data
                 conn=key.fileobj
-                data = conn.recv(BUFFER_SIZE)
-                print ("Recv from ", self.listen_port, " Got: ", data)
+                data=None
+                try:
+                    data = conn.recv(BUFFER_SIZE)
+                except:
+                    data=None
+
+                print ("Recv from ", self.listen_port, " Got: ", len(data) if data else data)
                 if not data:
                     self.closesock(conn)
                     continue
@@ -249,17 +263,20 @@ class SendThread(MythreadBase):
 if __name__=="__main__":
     initsock()
     accept_threads=AcceptThread(PORT2SOCK)
+    print ("Starting Accept thread...")
     accept_threads.start()
 
     send_threads=[]
+    print ("Starting %d Send thread..."%(len(PORT2PORT)))
     for lisp in PORT2PORT:
         sendp=PORT2PORT[lisp]
         tep=SendThread(lisp, sendp)
         tep.start()
         send_threads.append(tep)
     
+    print ("Serving...")
     try:
-        while 1: sleep(5)
+        while 1: sleep(15)
     except:
         pass
     finally:
