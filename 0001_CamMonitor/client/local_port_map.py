@@ -126,7 +126,7 @@ class SendThread(MythreadBase):
                     except:
                         data = None
 
-                    print("Recv from ", self.listen_ipport, " Got: ",
+                    #print("Recv from ", self.listen_ipport, " Got: ",
                         len(data) if data else data)
                     if not data:
                         self.connected = False
@@ -136,7 +136,7 @@ class SendThread(MythreadBase):
                     try:
                         sret=self.send_sock.sendall(data)
                         if sret is None:
-                            print ("Send to port socket ", self.send_ipport, " Success")
+                            pass #print ("Send to port socket ", self.send_ipport, " Success")
                         else:
                             print ("Send to port socket ", self.send_ipport, " Failed : ", sret)
                     except:
