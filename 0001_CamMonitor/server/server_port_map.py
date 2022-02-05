@@ -14,8 +14,9 @@ import threading
 import socket
 import multiprocessing
 from multiprocessing import Array
-import ctypes 
+import ctypes, copy
 import selectors
+from time import sleep
 
 # 含微秒的日期时间 2018-09-06_21:54:46.205213
 dt_ms = lambda: datetime.datetime.now().strftime('%Y-%m-%d_%H:%M:%S.%f')
@@ -39,7 +40,7 @@ PORT2PORT = {int(x): int(PMAPS[x]) for x in PMAPS}
 # init sockets
 PORT2SOCK = {}
 HOST = ''  #socket.INADDR_ANY
-BUFFER_SIZE = 1024
+BUFFER_SIZE = 1024*2
 
 def initsock():
     # socket.setdefaulttimeout(2)
@@ -200,16 +201,46 @@ class SendThread(MythreadBase):
     def run(self):
         while not self.stop_thread:
             # client not connected
-            if self.listen_port not in PORT2CONS: continue
-            if self.send_port not in PORT2CONS: continue
+            if self.listen_port not in PORT2CONS : continue
+            if self.send_port not in PORT2CONS : continue
+
+
+            threadLock_PORT2CON.acquire()
+            tep_listen_socks= PORT2CONS[self.listen_port][:]   # copy.deepcopy(PORT2CONS[self.listen_port])
+            tep_send_socks= PORT2CONS[self.send_port][:]   # copy.deepcopy(PORT2CONS[self.send_port])
+            threadLock_PORT2CON.release()
+
+            if len(tep_listen_socks)<=0: continue
+            if len(tep_send_socks)<=0: continue
+
+            # register all income sockets
+            for soc in tep_listen_socks:
+                try:
+                    self.select_sock.register(soc, selectors.EVENT_READ, self.listen_port)
+                except:
+                    continue
+                finally:
+                    pass
 
             events = self.select_sock.select(0)
             for key, mask in events:
                 oriport = key.data
                 conn=key.fileobj
                 data = conn.recv(BUFFER_SIZE)
+                print ("Recv from ", self.listen_port, " Got: ", data)
                 if not data:
                     self.closesock(conn)
+                    continue
+                
+                for sp in PORT2CONS[self.send_port]:
+                    try:
+                        sret=sp.sendall(data)
+                        if sret is None:
+                            print ("Send to port socket ", self.send_port, " Success")
+                        else:
+                            print ("Send to port socket ", self.send_port, " Failed : ", sret)
+                    except:
+                        continue
             
             
 
@@ -220,11 +251,23 @@ if __name__=="__main__":
     accept_threads=AcceptThread(PORT2SOCK)
     accept_threads.start()
 
+    send_threads=[]
+    for lisp in PORT2PORT:
+        sendp=PORT2PORT[lisp]
+        tep=SendThread(lisp, sendp)
+        tep.start()
+        send_threads.append(tep)
     
-    
+    try:
+        while 1: sleep(5)
+    except:
+        pass
+    finally:
+        # close
+        for i in send_threads: i.stop()
+        for i in send_threads: i.join()
 
-    # close
-    accept_threads.stop()
-    accept_threads.join()
+        accept_threads.stop()
+        accept_threads.join()
     
     
