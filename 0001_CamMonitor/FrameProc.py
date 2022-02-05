@@ -8,7 +8,7 @@ import numpy as np
 import threading
 
 dt_ms = lambda: datetime.datetime.now().strftime(
-    '%Y-%m-%d_%H:%M:%S.%f')  # 含微秒的日期时间，来源 比特量化 2018-09-06_21:54:46.205213
+    '%Y-%m-%d_%H:%M:%S.%f')  # 含微秒的日期时间2018-09-06_21:54:46.205213
 
 # Raspberry Pi camera module (requires picamera package)
 video = cv2.VideoCapture(0)
