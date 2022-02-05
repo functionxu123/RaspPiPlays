@@ -10,6 +10,7 @@ import os
 import os.path as op
 import ctypes, copy
 import selectors
+import inspect
 
 
 # 含微秒的日期时间 2018-09-06_21:54:46.205213
@@ -36,13 +37,18 @@ class MythreadBase(threading.Thread):
     def stop(self):
         print("Stoping Thread: ", self.getName(), " PID: ", os.getpid())
 
-        thread_id = self.get_id() 
+        thread_id = ctypes.c_long(self.ident) #self.get_id() 
+        exctype=SystemExit
+        if not inspect.isclass(exctype):    exctype = type(exctype)
+
         #给线程发过去一个exceptions响应
-        res = ctypes.pythonapi.PyThreadState_SetAsyncExc(thread_id, ctypes.py_object(SystemExit)) 
+        res = ctypes.pythonapi.PyThreadState_SetAsyncExc(thread_id, ctypes.py_object(exctype)) 
         self.stop_thread = True
         if res == 0:
-            #raise ValueError("invalid thread id")
-            print ("Invalid thread id: ", thread_id)
+            raise ValueError("invalid thread id")
+            #print ("Invalid thread id: ", thread_id)
         elif res != 1: 
             ctypes.pythonapi.PyThreadState_SetAsyncExc(thread_id, None) 
             print('Exception raise failure')
+        else:
+            print ("Send SystemExit to %s Success"%self.getName())
