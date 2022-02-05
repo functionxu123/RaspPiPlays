@@ -190,7 +190,7 @@ class CutThread(threading.Thread):
 
 
 if __name__ == '__main__':
-    thre = CutThread(4, 5)
+    thre = CutThread(6, 5)
     thre.start()
 
     try:
