@@ -130,6 +130,10 @@ def video_feed():
     return Response(gen(video),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
+@app.route('/test')
+def test_response():
+    return '<h1>HomeTesting</h1>'
+
 
 class CutThread(threading.Thread):
 
