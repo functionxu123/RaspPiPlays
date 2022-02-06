@@ -176,7 +176,7 @@ class SendThread(MythreadBase):
                 # recv
                 data = None
                 try:
-                    data = self.listen_sock.recv(BUFFER_SIZE)
+                    data = TUIPPORT2SOCK[self.listen_ipport].recv(BUFFER_SIZE)
                 except:
                     data = None
 
@@ -197,7 +197,7 @@ class SendThread(MythreadBase):
                     self.connected_send=True
 
                     try:
-                        sret=self.send_sock.sendall(data)
+                        sret=TUIPPORT2SOCK[self.send_ipport].sendall(data)
                         if sret is None:
                             if args.debug: print ("Send to port socket ", self.send_ipport, " Success")
                         else:
