@@ -18,6 +18,8 @@ dt_ms = lambda: datetime.datetime.now().strftime('%Y-%m-%d_%H:%M:%S.%f')
 
 BUFFER_SIZE = 1024*2*2*2
 
+MAXSENDTRY=6
+
 class MythreadBase(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)

@@ -19,7 +19,7 @@ from multiprocessing import Array
 import ctypes, copy
 import selectors
 from time import sleep
-from common.common import BUFFER_SIZE, MythreadBase
+from common.common import BUFFER_SIZE, MythreadBase, MAXSENDTRY
 
 # 含微秒的日期时间 2018-09-06_21:54:46.205213
 dt_ms = lambda: datetime.datetime.now().strftime('%Y-%m-%d_%H:%M:%S.%f')
@@ -75,11 +75,11 @@ class SendThread(MythreadBase):
         MythreadBase.__init__(self)
         self.stop_thread = False
         self.connected = False
+        self.connected_listen=False
+        self.connected_send=False
 
         self.listen_ipport = listen_ipport
         self.send_ipport = send_ipport
-        self.listen_sock = TUIPPORT2SOCK[listen_ipport]
-        self.send_sock = TUIPPORT2SOCK[send_ipport]
 
     def tryconnect(self, sock, ipport):
         if self.connected: return True
@@ -108,7 +108,15 @@ class SendThread(MythreadBase):
             TUIPPORT2SOCK[self.send_ipport]=self.send_sock
             threadLock_TUIPPORT2SOCK.release()
 
-    def run(self):
+    def closesock_ipport(self, ipport):
+        print('One Closing Socket On ', ipport)
+        
+        threadLock_TUIPPORT2SOCK.acquire()
+        if ipport in TUIPPORT2SOCK: TUIPPORT2SOCK[ipport].close()
+        TUIPPORT2SOCK[ipport]=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        threadLock_TUIPPORT2SOCK.release()
+
+    def run2(self):
         try:
             print ("Thread: ", self.getName(),"Staring Connection Thread: ", self.listen_ipport, " --> ", self.send_ipport)
             while not self.stop_thread:
@@ -150,7 +158,72 @@ class SendThread(MythreadBase):
             self.listen_sock.close()
             self.send_sock.close()
             print ("SendThread %s Stoped..."%self.getName())
+    
+    
+    def run(self):
+        try:
+            print ("Thread: ", self.getName(),"Staring Connection Thread: ", self.listen_ipport, " --> ", self.send_ipport)
+            while not self.stop_thread:
+                #  or (not self.tryconnect(self.send_sock, self.send_ipport)
+                while ((not self.connected_listen) and 
+                       (not self.tryconnect(TUIPPORT2SOCK[self.listen_ipport], self.listen_ipport))):
+                    sleep(5)
+                    continue
+                self.connected_listen = True
+
+                print ("Connection Listen Success: ", self.listen_ipport)
+
+                # recv
+                data = None
+                try:
+                    data = self.listen_sock.recv(BUFFER_SIZE)
+                except:
+                    data = None
+
+                if args.debug:  print("Recv from ", self.listen_ipport, " Got: ", len(data) if data else data)
+                if not data:
+                    self.connected_listen = False
+                    self.closesock_ipport(self.listen_ipport)
+                    continue
+                # send 
+                send_cnt=0
+                while send_cnt<MAXSENDTRY:
+                    send_cnt+=1
+
+                    while ((not self.connected_send) and 
+                        (not self.tryconnect(TUIPPORT2SOCK[self.send_ipport], self.send_ipport))):
+                        sleep(5)
+                        continue
+                    self.connected_send=True
+
+                    try:
+                        sret=self.send_sock.sendall(data)
+                        if sret is None:
+                            if args.debug: print ("Send to port socket ", self.send_ipport, " Success")
+                        else:
+                            print ("Send to port socket ", self.send_ipport, " Failed : ", sret)
+                            self.closesock_ipport(self.send_ipport)
+                            self.connected_send=False
+                            sleep(1)
+                            continue
+                    except Exception as e:
+                        if args.debug: 
+                            print ("send_sock.sendall Error:")
+                            print (str(e))
+                        sleep(1)
+                        self.closesock_ipport(self.send_ipport)
+                        self.connected_send=False
+                        continue
+
+                    break
+                if send_cnt>=MAXSENDTRY:
+                    print ("Max Send Cnt > ",MAXSENDTRY," Discarding some data...")
                     
+        finally:
+            print ("SendThread %s closing..."%self.getName())
+            TUIPPORT2SOCK[self.send_ipport].close()
+            TUIPPORT2SOCK[self.listen_ipport].close()
+            print ("SendThread %s Stoped..."%self.getName())
 
 
 
