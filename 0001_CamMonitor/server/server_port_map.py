@@ -184,7 +184,8 @@ class SendThread(MythreadBase):
                 # client not connected
                 if self.listen_port not in PORT2CONS or self.send_port not in PORT2CONS: 
                     sleep(SLEEPLONG)
-                    if args.debug: self.log ("No connected sockets on ",self.send_port, " or ", self.listen_port)
+                    if args.debug: self.log ("No connected sockets on ",self.send_port if self.send_port not in PORT2CONS else "", "  ", 
+                                            self.listen_port if self.listen_port not in PORT2CONS else "")
                     continue
 
                 threadLock_PORT2CON.acquire()
@@ -194,7 +195,8 @@ class SendThread(MythreadBase):
 
                 if len(tep_listen_socks)<=0 or len(tep_send_socks)<=0: 
                     sleep(SLEEPLONG)
-                    if args.debug: self.log ("No connected sockets on ",self.send_port, " or ", self.listen_port)
+                    if args.debug: self.log ("No connected sockets on ",self.send_port if len(tep_send_socks)<=0 else "", "  ", 
+                                            self.listen_port if len(tep_listen_socks)<=0 else "")
                     continue
 
                 # register all income sockets
