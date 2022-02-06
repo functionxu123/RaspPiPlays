@@ -136,7 +136,7 @@ class SendThread(MythreadBase):
                     try:
                         sret=self.send_sock.sendall(data)
                         if sret is None:
-                            if args.deubg: print ("Send to port socket ", self.send_ipport, " Success")
+                            if args.debug: print ("Send to port socket ", self.send_ipport, " Success")
                         else:
                             print ("Send to port socket ", self.send_ipport, " Failed : ", sret)
                     except:

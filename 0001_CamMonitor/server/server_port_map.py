@@ -214,7 +214,7 @@ class SendThread(MythreadBase):
                     except:
                         data=None
 
-                    if args.deubg: print ("Recv from ", self.listen_port, " Got: ", len(data) if data else data)
+                    if args.debug: print ("Recv from ", self.listen_port, " Got: ", len(data) if data else data)
                     if not data:
                         self.closesock(conn)
                         continue
@@ -223,7 +223,7 @@ class SendThread(MythreadBase):
                         try:
                             sret=sp.sendall(data)
                             if sret is None:
-                                if args.deubg: print ("Send to port socket ", self.send_port, " Success")
+                                if args.debug: print ("Send to port socket ", self.send_port, " Success")
                             else:
                                 print ("Send to port socket ", self.send_port, " Failed : ", sret)
                         except:
