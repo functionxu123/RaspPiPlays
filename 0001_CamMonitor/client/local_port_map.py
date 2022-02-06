@@ -86,13 +86,13 @@ class SendThread(MythreadBase):
         ret = sock.connect_ex(ipport)
         # ErrorCode:  106 : Transport endpoint is already connected
         if ret != 0 and ret!=106:
-            print("Trying Connecting to ", ipport, " ErrorCode: ", ret, ":", os.strerror(ret))
+            self.log("Trying Connecting to ", ipport, " ErrorCode: ", ret, ":", os.strerror(ret))
             return False
         return True
 
     def closesock(self, sock):
         if sock == self.listen_sock:
-            print('One Closing Socket On ', self.listen_ipport)
+            self.log('One Closing Socket On ', self.listen_ipport)
             sock.close()
             
             self.listen_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -100,7 +100,7 @@ class SendThread(MythreadBase):
             TUIPPORT2SOCK[self.listen_ipport]=self.listen_sock
             threadLock_TUIPPORT2SOCK.release()
         else:
-            print('One Closing Socket On ', self.send_ipport)
+            self.log('One Closing Socket On ', self.send_ipport)
             sock.close()
             
             self.send_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -109,7 +109,7 @@ class SendThread(MythreadBase):
             threadLock_TUIPPORT2SOCK.release()
 
     def closesock_ipport(self, ipport):
-        print('One Closing Socket On ', ipport)
+        self.log('One Closing Socket On ', ipport)
         
         threadLock_TUIPPORT2SOCK.acquire()
         if ipport in TUIPPORT2SOCK: TUIPPORT2SOCK[ipport].close()
@@ -118,7 +118,7 @@ class SendThread(MythreadBase):
 
     def run2(self):
         try:
-            print ("Thread: ", self.getName(),"Staring Connection Thread: ", self.listen_ipport, " --> ", self.send_ipport)
+            self.log ("Staring Connection Thread: ", self.listen_ipport, " --> ", self.send_ipport)
             while not self.stop_thread:
                 if (not self.tryconnect(self.listen_sock, self.listen_ipport)) or (
                         not self.tryconnect(self.send_sock, self.send_ipport)):
@@ -126,7 +126,7 @@ class SendThread(MythreadBase):
                     continue
                 self.connected = True
 
-                print ("Connection Success: ", self.listen_ipport, " <--> ", self.send_ipport)
+                self.log ("Connection Success: ", self.listen_ipport, " <--> ", self.send_ipport)
 
                 while (not self.stop_thread) and self.connected:
                     data = None
@@ -135,7 +135,7 @@ class SendThread(MythreadBase):
                     except:
                         data = None
 
-                    if args.debug:  print("Recv from ", self.listen_ipport, " Got: ", len(data) if data else data)
+                    if args.debug:  self.log("Recv from ", self.listen_ipport, " Got: ", len(data) if data else data)
                     if not data:
                         self.connected = False
                         self.closesock(self.listen_sock)
@@ -144,32 +144,32 @@ class SendThread(MythreadBase):
                     try:
                         sret=self.send_sock.sendall(data)
                         if sret is None:
-                            if args.debug: print ("Send to port socket ", self.send_ipport, " Success")
+                            if args.debug: self.log ("Send to port socket ", self.send_ipport, " Success")
                         else:
-                            print ("Send to port socket ", self.send_ipport, " Failed : ", sret)
+                            self.log ("Send to port socket ", self.send_ipport, " Failed : ", sret)
                     except Exception as e:
                         if args.debug: 
-                            print ("send_sock.sendall Error:")
-                            print (str(e))
+                            self.log ("send_sock.sendall Error:")
+                            self.log (str(e))
                         sleep(1)
                         continue
         finally:
-            print ("SendThread %s closing..."%self.getName())
+            self.log ("SendThread %s closing..."%self.getName())
             self.listen_sock.close()
             self.send_sock.close()
-            print ("SendThread %s Stoped..."%self.getName())
+            self.log ("SendThread %s Stoped..."%self.getName())
     
     
     def run(self):
         try:
-            print ("Thread: ", self.getName(),"Staring Connection Thread: ", self.listen_ipport, " --> ", self.send_ipport)
+            self.log ("Staring Connection Thread: ", self.listen_ipport, " --> ", self.send_ipport)
             while not self.stop_thread:
                 #  or (not self.tryconnect(self.send_sock, self.send_ipport)
                 while ((not self.connected_listen) and 
                        (not self.tryconnect(TUIPPORT2SOCK[self.listen_ipport], self.listen_ipport))):
                     sleep(5)
                     continue
-                if not self.connected_listen: print (self.getName()," : Connection Listen Success: ", self.listen_ipport)
+                if not self.connected_listen: self.log ("Connection Listen Success: ", self.listen_ipport)
                 self.connected_listen = True
 
                 
@@ -181,7 +181,7 @@ class SendThread(MythreadBase):
                 except:
                     data = None
 
-                if args.debug:  print("Recv from ", self.listen_ipport, " Got: ", len(data) if data else data)
+                if args.debug:  self.log("Recv from ", self.listen_ipport, " Got: ", len(data) if data else data)
                 if not data:
                     self.connected_listen = False
                     self.closesock_ipport(self.listen_ipport)
@@ -195,23 +195,23 @@ class SendThread(MythreadBase):
                         (not self.tryconnect(TUIPPORT2SOCK[self.send_ipport], self.send_ipport))):
                         sleep(1)
                         continue
-                    if not self.connected_send: print (self.getName()," : Connection Send Success: ", self.listen_ipport)
+                    if not self.connected_send: self.log ("Connection Send Success: ", self.listen_ipport)
                     self.connected_send=True
 
                     try:
                         sret=TUIPPORT2SOCK[self.send_ipport].sendall(data)
                         if sret is None:
-                            if args.debug: print (self.getName()," : Send to port socket ", self.send_ipport, " Success")
+                            if args.debug: self.log ("Send to port socket ", self.send_ipport, " Success")
                         else:
-                            print (self.getName()," : Send to port socket ", self.send_ipport, " Failed : ", sret)
+                            self.log ("Send to port socket ", self.send_ipport, " Failed : ", sret)
                             self.closesock_ipport(self.send_ipport)
                             self.connected_send=False
                             sleep(1)
                             continue
                     except Exception as e:
                         if args.debug: 
-                            print (self.getName()," : send_sock.sendall Error:")
-                            print (str(e))
+                            self.log ("send_sock.sendall Error:")
+                            self.log (str(e))
                         sleep(1)
                         self.closesock_ipport(self.send_ipport)
                         self.connected_send=False
@@ -219,13 +219,13 @@ class SendThread(MythreadBase):
 
                     break
                 if send_cnt>=MAXSENDTRY:
-                    print ("Max Send Cnt > ",MAXSENDTRY," Discarding some data...")
+                    self.log ("Max Send Cnt > ",MAXSENDTRY," Discarding some data...")
                     
         finally:
-            print ("SendThread %s closing..."%self.getName())
+            self.log ("SendThread %s closing..."%self.getName())
             TUIPPORT2SOCK[self.send_ipport].close()
             TUIPPORT2SOCK[self.listen_ipport].close()
-            print ("SendThread %s Stoped..."%self.getName())
+            self.log ("SendThread %s Stoped..."%self.getName())
 
 
 

@@ -37,7 +37,7 @@ class MythreadBase(threading.Thread):
         return -1
     
     def stop(self):
-        print("Stoping Thread: ", self.getName(), " PID: ", os.getpid())
+        self.log("Stoping Thread: ", self.getName(), " PID: ", os.getpid())
 
         thread_id = ctypes.c_long(self.ident) #self.get_id() 
         exctype=SystemExit
@@ -48,9 +48,12 @@ class MythreadBase(threading.Thread):
         self.stop_thread = True
         if res == 0:
             raise ValueError("invalid thread id")
-            #print ("Invalid thread id: ", thread_id)
+            #self.log ("Invalid thread id: ", thread_id)
         elif res != 1: 
             ctypes.pythonapi.PyThreadState_SetAsyncExc(thread_id, None) 
-            print('Exception raise failure')
+            self.log('Exception raise failure')
         else:
-            print ("Send SystemExit to %s Success"%self.getName())
+            self.log ("Send SystemExit to %s Success"%self.getName())
+    
+    def log(self, *args):
+        print ("[",self.getName(), "] ", *args)

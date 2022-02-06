@@ -86,7 +86,7 @@ class AcceptThread(MythreadBase):
 
     # function to handle accept
     def run(self):
-        print ("Thread: ", self.getName()," -> Listening on port: ", [x for x in  self.port2socket])
+        self.log ("Listening on port: ", [x for x in  self.port2socket])
         try:
             while (not self.stop_thread):
                 events = self.select_sock.select(None)
@@ -94,7 +94,7 @@ class AcceptThread(MythreadBase):
                     oriport = key.data
                     con, address = key.fileobj.accept()  # 在这个位置进行等待，监听端口号
                     con.setblocking(False)
-                    print("Thread: ", self.getName(), " PID: ", os.getpid(), " Port: ", oriport," GetNewConnetctionFrom: ", address)
+                    self.log(" PID: ", os.getpid(), " Port: ", oriport," GetNewConnetctionFrom: ", address)
 
                     threadLock_PORT2CON.acquire()
                     if oriport not in PORT2CONS:
@@ -102,7 +102,7 @@ class AcceptThread(MythreadBase):
                     PORT2CONS[oriport].append(con)
                     threadLock_PORT2CON.release()                
         finally:
-            print ("AcceptThread closing...")
+            self.log ("AcceptThread closing...")
             self.select_sock.close()
             for i in PORT2CONS:
                 for j in PORT2CONS[i]:
@@ -111,7 +111,7 @@ class AcceptThread(MythreadBase):
             for port in self.port2socket:
                 self.port2socket[port].close()
 
-            print ("AcceptThread: ", self.getName(), " Stoped")
+            self.log ("AcceptThread: ", self.getName(), " Stoped")
 
 
 
@@ -167,7 +167,7 @@ class SendThread(MythreadBase):
         threadLock_PORT2CON.release()
     
     def closesock(self, conn):
-        print('One Closing Socket On ', self.listen_port)
+        self.log('One Closing Socket On ', self.listen_port)
         self.select_sock.unregister(conn)       
 
         threadLock_PORT2CON.acquire()
@@ -179,12 +179,12 @@ class SendThread(MythreadBase):
     # fun to handle fd send/recv
     def run(self):
         try:
-            print ("Thread: ", self.getName(), " -> Starting SendThread: ",self.listen_port, " --> ", self.send_port)
+            self.log (" Starting SendThread: ",self.listen_port, " --> ", self.send_port)
             while not self.stop_thread:
                 # client not connected
                 if self.listen_port not in PORT2CONS or self.send_port not in PORT2CONS: 
                     sleep(1)
-                    if args.debug: print ("No connected sockets on ",self.send_port, " or ", self.listen_port)
+                    if args.debug: self.log ("No connected sockets on ",self.send_port, " or ", self.listen_port)
                     continue
 
                 threadLock_PORT2CON.acquire()
@@ -194,7 +194,7 @@ class SendThread(MythreadBase):
 
                 if len(tep_listen_socks)<=0 or len(tep_send_socks)<=0: 
                     sleep(1)
-                    if args.debug: print ("No connected sockets on ",self.send_port, " or ", self.listen_port)
+                    if args.debug: self.log ("No connected sockets on ",self.send_port, " or ", self.listen_port)
                     continue
 
                 # register all income sockets
@@ -216,7 +216,7 @@ class SendThread(MythreadBase):
                     except:
                         data=None
 
-                    if args.debug: print ("Recv from ", self.listen_port, " Got: ", len(data) if data else data)
+                    if args.debug: self.log ("Recv from ", self.listen_port, " Got: ", len(data) if data else data)
                     if not data:
                         self.closesock(conn)
                         continue
@@ -225,16 +225,16 @@ class SendThread(MythreadBase):
                         try:
                             sret=sp.sendall(data)
                             if sret is None:
-                                if args.debug: print ("Send to port socket ", self.send_port, " Success")
+                                if args.debug: self.log ("Send to port socket ", self.send_port, " Success")
                             else:
-                                print ("Send to port socket ", self.send_port, " Failed : ", sret)
+                                self.log ("Send to port socket ", self.send_port, " Failed : ", sret)
                         except:
                             continue
         finally:
-            print ("SendThread %s closing..."%self.getName())
+            self.log ("SendThread %s closing..."%self.getName())
             self.select_sock.close()
 
-            print ("SendThread %s Stoped..."%self.getName())
+            self.log ("SendThread %s Stoped..."%self.getName())
             
             
 
