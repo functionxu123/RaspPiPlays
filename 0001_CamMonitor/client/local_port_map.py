@@ -139,7 +139,10 @@ class SendThread(MythreadBase):
                             if args.debug: print ("Send to port socket ", self.send_ipport, " Success")
                         else:
                             print ("Send to port socket ", self.send_ipport, " Failed : ", sret)
-                    except:
+                    except Exception as e:
+                        if args.debug: 
+                            print ("send_sock.sendall Error:")
+                            print (str(e))
                         sleep(1)
                         continue
         finally:
