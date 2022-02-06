@@ -127,7 +127,7 @@ class SendThread(MythreadBase):
                     except:
                         data = None
 
-                    #print("Recv from ", self.listen_ipport, " Got: ", len(data) if data else data)
+                    if args.debug:  print("Recv from ", self.listen_ipport, " Got: ", len(data) if data else data)
                     if not data:
                         self.connected = False
                         self.closesock(self.listen_sock)
