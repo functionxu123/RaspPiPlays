@@ -183,20 +183,20 @@ class SendThread(MythreadBase):
             while not self.stop_thread:
                 # client not connected
                 if self.listen_port not in PORT2CONS or self.send_port not in PORT2CONS: 
-                    sleep(SLEEPLONG)
                     if args.debug: self.log ("No connected sockets on ",str(self.send_port)+"  " if self.send_port not in PORT2CONS else "", 
                                             str(self.listen_port)+"  " if self.listen_port not in PORT2CONS else "")
+                    sleep(SLEEPLONG)
                     continue
 
-                threadLock_PORT2CON.acquire()
+                # threadLock_PORT2CON.acquire()
                 tep_listen_socks= PORT2CONS[self.listen_port][:]   # copy.deepcopy(PORT2CONS[self.listen_port])
                 tep_send_socks= PORT2CONS[self.send_port][:]   # copy.deepcopy(PORT2CONS[self.send_port])
-                threadLock_PORT2CON.release()
+                # threadLock_PORT2CON.release()
 
                 if len(tep_listen_socks)<=0 or len(tep_send_socks)<=0: 
-                    sleep(SLEEPLONG)
                     if args.debug: self.log ("No connected sockets on ",str(self.send_port)+"  " if len(tep_send_socks)<=0 else "", 
                                             str(self.listen_port)+"  " if len(tep_listen_socks)<=0 else "")
+                    sleep(SLEEPLONG)
                     continue
 
                 # register all income sockets
@@ -230,7 +230,11 @@ class SendThread(MythreadBase):
                                 if args.debug: self.log ("Send to port socket ", self.send_port, " Success")
                             else:
                                 self.log ("Send to port socket ", self.send_port, " Failed : ", sret)
-                        except:
+                        except Exception as e:
+                            if args.debug:
+                                self.log ("sendall Error:")
+                                self.log (str(e))
+                            sleep(SLEEPSHORT)
                             continue
         finally:
             self.log ("SendThread %s closing..."%self.getName())
