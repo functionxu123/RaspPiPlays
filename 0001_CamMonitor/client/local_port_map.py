@@ -19,7 +19,7 @@ from multiprocessing import Array
 import ctypes, copy
 import selectors
 from time import sleep
-from common.common import BUFFER_SIZE, MythreadBase, MAXSENDTRY
+from common.common import BUFFER_SIZE, MythreadBase, MAXSENDTRY, SLEEPLONG, SLEEPSHORT
 
 # 含微秒的日期时间 2018-09-06_21:54:46.205213
 dt_ms = lambda: datetime.datetime.now().strftime('%Y-%m-%d_%H:%M:%S.%f')
@@ -167,7 +167,7 @@ class SendThread(MythreadBase):
                 #  or (not self.tryconnect(self.send_sock, self.send_ipport)
                 while ((not self.connected_listen) and 
                        (not self.tryconnect(TUIPPORT2SOCK[self.listen_ipport], self.listen_ipport))):
-                    sleep(5)
+                    sleep(SLEEPLONG)
                     continue
                 if not self.connected_listen: self.log ("Connection Listen Success: ", self.listen_ipport)
                 self.connected_listen = True
@@ -193,7 +193,7 @@ class SendThread(MythreadBase):
 
                     while ((not self.connected_send) and 
                         (not self.tryconnect(TUIPPORT2SOCK[self.send_ipport], self.send_ipport))):
-                        sleep(1)
+                        sleep(SLEEPLONG)
                         continue
                     if not self.connected_send: self.log ("Connection Send Success: ", self.listen_ipport)
                     self.connected_send=True
@@ -206,13 +206,13 @@ class SendThread(MythreadBase):
                             self.log ("Send to port socket ", self.send_ipport, " Failed : ", sret)
                             self.closesock_ipport(self.send_ipport)
                             self.connected_send=False
-                            sleep(1)
+                            sleep(SLEEPSHORT)
                             continue
                     except Exception as e:
                         if args.debug: 
                             self.log ("send_sock.sendall Error:")
                             self.log (str(e))
-                        sleep(1)
+                        sleep(SLEEPSHORT)
                         self.closesock_ipport(self.send_ipport)
                         self.connected_send=False
                         continue

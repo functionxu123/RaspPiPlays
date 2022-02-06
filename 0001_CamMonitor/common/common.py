@@ -20,6 +20,9 @@ BUFFER_SIZE = 1024*2*2*2
 
 MAXSENDTRY=6
 
+SLEEPLONG=6
+SLEEPSHORT=1
+
 class MythreadBase(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)

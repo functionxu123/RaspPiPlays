@@ -18,7 +18,7 @@ from multiprocessing import Array
 import ctypes, copy
 import selectors
 from time import sleep
-from common.common import MythreadBase, BUFFER_SIZE
+from common.common import MythreadBase, BUFFER_SIZE,SLEEPSHORT, SLEEPLONG
 
 # 含微秒的日期时间 2018-09-06_21:54:46.205213
 dt_ms = lambda: datetime.datetime.now().strftime('%Y-%m-%d_%H:%M:%S.%f')
@@ -183,7 +183,7 @@ class SendThread(MythreadBase):
             while not self.stop_thread:
                 # client not connected
                 if self.listen_port not in PORT2CONS or self.send_port not in PORT2CONS: 
-                    sleep(1)
+                    sleep(SLEEPLONG)
                     if args.debug: self.log ("No connected sockets on ",self.send_port, " or ", self.listen_port)
                     continue
 
@@ -193,7 +193,7 @@ class SendThread(MythreadBase):
                 threadLock_PORT2CON.release()
 
                 if len(tep_listen_socks)<=0 or len(tep_send_socks)<=0: 
-                    sleep(1)
+                    sleep(SLEEPLONG)
                     if args.debug: self.log ("No connected sockets on ",self.send_port, " or ", self.listen_port)
                     continue
 
@@ -206,7 +206,7 @@ class SendThread(MythreadBase):
                     finally:
                         pass
 
-                events = self.select_sock.select(1)
+                events = self.select_sock.select(SLEEPSHORT)
                 for key, mask in events:
                     oriport = key.data
                     conn=key.fileobj
