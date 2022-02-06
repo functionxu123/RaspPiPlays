@@ -232,10 +232,10 @@ class SendThread(MythreadBase):
                                 self.log ("Send to port socket ", self.send_port, " Failed : ", sret)
                         except Exception as e:
                             if args.debug:
-                                self.log ("sendall Error:")
-                                self.log (str(e))
-                            sleep(SLEEPSHORT)
-                            continue
+                                self.log ("sendall Error: ", str(e))
+                            # sleep(SLEEPSHORT)
+                            #send too fast?
+                            break
         finally:
             self.log ("SendThread %s closing..."%self.getName())
             self.select_sock.close()

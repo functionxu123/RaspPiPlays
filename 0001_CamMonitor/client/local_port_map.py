@@ -210,8 +210,7 @@ class SendThread(MythreadBase):
                             continue
                     except Exception as e:
                         if args.debug: 
-                            self.log ("send_sock.sendall Error:")
-                            self.log (str(e))
+                            self.log ("send_sock.sendall Error: ",str(e))
                         sleep(SLEEPSHORT)
                         self.closesock_ipport(self.send_ipport)
                         self.connected_send=False
