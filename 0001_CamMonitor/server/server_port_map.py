@@ -4,6 +4,7 @@
 @Date     :2022/02/05 15:27:33
 @Author      :xuhao
 '''
+from ast import Store, parse
 import os,sys
 sys.path.append("..")
 import os.path as op
@@ -28,6 +29,7 @@ parser.add_argument('-c',
                     type=str,
                     default="./config.json",
                     help='a path for prot map config file, in json formate')
+parser.add_argument("-d","--debug", action="store_true", default=False, help="open debug mode")
 
 args = parser.parse_args()
 
@@ -212,7 +214,7 @@ class SendThread(MythreadBase):
                     except:
                         data=None
 
-                    #print ("Recv from ", self.listen_port, " Got: ", len(data) if data else data)
+                    if args.deubg: print ("Recv from ", self.listen_port, " Got: ", len(data) if data else data)
                     if not data:
                         self.closesock(conn)
                         continue
@@ -221,7 +223,7 @@ class SendThread(MythreadBase):
                         try:
                             sret=sp.sendall(data)
                             if sret is None:
-                                pass #print ("Send to port socket ", self.send_port, " Success")
+                                if args.deubg: print ("Send to port socket ", self.send_port, " Success")
                             else:
                                 print ("Send to port socket ", self.send_port, " Failed : ", sret)
                         except:

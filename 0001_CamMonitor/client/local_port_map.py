@@ -30,6 +30,7 @@ parser.add_argument('-c',
                     type=str,
                     default="./config.json",
                     help='a path for prot map config file, in json formate')
+parser.add_argument("-d","--debug", action="store_true", default=False, help="open debug mode")
 
 args = parser.parse_args()
 
@@ -117,7 +118,7 @@ class SendThread(MythreadBase):
                     continue
                 self.connected = True
 
-                print ("Connection Success")
+                print ("Connection Success: ", self.listen_ipport, " <--> ", self.send_ipport)
 
                 while (not self.stop_thread) and self.connected:
                     data = None
@@ -135,7 +136,7 @@ class SendThread(MythreadBase):
                     try:
                         sret=self.send_sock.sendall(data)
                         if sret is None:
-                            pass #print ("Send to port socket ", self.send_ipport, " Success")
+                            if args.deubg: print ("Send to port socket ", self.send_ipport, " Success")
                         else:
                             print ("Send to port socket ", self.send_ipport, " Failed : ", sret)
                     except:
