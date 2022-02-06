@@ -169,9 +169,10 @@ class SendThread(MythreadBase):
                        (not self.tryconnect(TUIPPORT2SOCK[self.listen_ipport], self.listen_ipport))):
                     sleep(5)
                     continue
+                if not self.connected_listen: print ("Connection Listen Success: ", self.listen_ipport)
                 self.connected_listen = True
 
-                print ("Connection Listen Success: ", self.listen_ipport)
+                
 
                 # recv
                 data = None
@@ -194,6 +195,7 @@ class SendThread(MythreadBase):
                         (not self.tryconnect(TUIPPORT2SOCK[self.send_ipport], self.send_ipport))):
                         sleep(5)
                         continue
+                    if not self.connected_send: print ("Connection Send Success: ", self.listen_ipport)
                     self.connected_send=True
 
                     try:
