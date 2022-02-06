@@ -169,7 +169,7 @@ class SendThread(MythreadBase):
                        (not self.tryconnect(TUIPPORT2SOCK[self.listen_ipport], self.listen_ipport))):
                     sleep(5)
                     continue
-                if not self.connected_listen: print ("Connection Listen Success: ", self.listen_ipport)
+                if not self.connected_listen: print (self.getName()," : Connection Listen Success: ", self.listen_ipport)
                 self.connected_listen = True
 
                 
@@ -193,24 +193,24 @@ class SendThread(MythreadBase):
 
                     while ((not self.connected_send) and 
                         (not self.tryconnect(TUIPPORT2SOCK[self.send_ipport], self.send_ipport))):
-                        sleep(5)
+                        sleep(1)
                         continue
-                    if not self.connected_send: print ("Connection Send Success: ", self.listen_ipport)
+                    if not self.connected_send: print (self.getName()," : Connection Send Success: ", self.listen_ipport)
                     self.connected_send=True
 
                     try:
                         sret=TUIPPORT2SOCK[self.send_ipport].sendall(data)
                         if sret is None:
-                            if args.debug: print ("Send to port socket ", self.send_ipport, " Success")
+                            if args.debug: print (self.getName()," : Send to port socket ", self.send_ipport, " Success")
                         else:
-                            print ("Send to port socket ", self.send_ipport, " Failed : ", sret)
+                            print (self.getName()," : Send to port socket ", self.send_ipport, " Failed : ", sret)
                             self.closesock_ipport(self.send_ipport)
                             self.connected_send=False
                             sleep(1)
                             continue
                     except Exception as e:
                         if args.debug: 
-                            print ("send_sock.sendall Error:")
+                            print (self.getName()," : send_sock.sendall Error:")
                             print (str(e))
                         sleep(1)
                         self.closesock_ipport(self.send_ipport)
