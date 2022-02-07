@@ -120,6 +120,7 @@ def gen(video):
         if len(frame_list) > 0:
             frame = copy.deepcopy(frame_list[-1])
         threadLock.release()
+        # sleep(0.1)
         yield (b'--frame\r\n'
                b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
 

@@ -16,7 +16,7 @@ import inspect
 # 含微秒的日期时间 2018-09-06_21:54:46.205213
 dt_ms = lambda: datetime.datetime.now().strftime('%Y-%m-%d_%H:%M:%S.%f')
 
-BUFFER_SIZE = 1024*2*2*2
+BUFFER_SIZE = 1024
 
 MAXSENDTRY=6
 
