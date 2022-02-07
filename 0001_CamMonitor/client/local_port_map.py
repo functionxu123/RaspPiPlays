@@ -198,7 +198,7 @@ class SendThread(MythreadBase):
                         (not self.tryconnect(TUIPPORT2SOCK[self.send_ipport], self.send_ipport))):
                         sleep(SLEEPLONG)
                         continue
-                    if not self.connected_send: self.log ("Connection Send Success: ", self.listen_ipport)
+                    if not self.connected_send: self.log ("Connection Send Success: ", self.send_ipport)
                     self.connected_send=True
 
                     try:
@@ -215,9 +215,9 @@ class SendThread(MythreadBase):
                     except Exception as e:
                         if args.debug: 
                             self.log ("send_sock.sendall Error: ",str(e))
-                        sleep(SLEEPSHORT)
                         self.closesock_ipport(self.send_ipport)
                         self.connected_send=False
+                        sleep(SLEEPSHORT)
                         continue
 
                     break
