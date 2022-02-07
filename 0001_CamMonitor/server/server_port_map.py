@@ -216,6 +216,7 @@ class SendThread(MythreadBase):
                     if self.send_port not in PORT2CONS or len(PORT2CONS[self.send_port])<=0: 
                         # if args.debug: self.log ("No connected sockets on ",(self.send_port))
                         #sleep(SLEEPLONG)
+                        self.closesock(conn)
                         continue
                     
                     for sp in PORT2CONS[self.send_port]:

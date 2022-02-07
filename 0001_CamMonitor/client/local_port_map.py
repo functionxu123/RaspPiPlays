@@ -186,6 +186,8 @@ class SendThread(MythreadBase):
                 if not data:
                     self.connected_listen = False
                     self.closesock_ipport(self.listen_ipport)
+                    self.connected_send= False
+                    self.closesock_ipport(self.send_ipport)
                     continue
                 # send 
                 send_cnt=0
