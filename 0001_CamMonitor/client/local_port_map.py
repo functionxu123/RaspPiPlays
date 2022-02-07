@@ -177,6 +177,7 @@ class SendThread(MythreadBase):
                 # recv
                 data = None
                 try:
+                    if args.debug: self.log("Prepare Blocked Reciving From ",self.listen_ipport)
                     data = TUIPPORT2SOCK[self.listen_ipport].recv(BUFFER_SIZE)
                 except:
                     data = None

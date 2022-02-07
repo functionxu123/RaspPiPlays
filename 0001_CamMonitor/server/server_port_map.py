@@ -226,6 +226,7 @@ class SendThread(MythreadBase):
                     for sp in PORT2CONS[self.send_port]:
                         try:
                             sp.setblocking(True)
+                            if args.debug: self.log("Prepare Blocked Sending to ",self.send_port)
                             sret=sp.sendall(data)
                             sp.setblocking(False)
                             if sret is None:
