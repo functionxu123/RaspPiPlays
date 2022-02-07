@@ -200,6 +200,7 @@ class SendThread(MythreadBase):
                     self.connected_send=True
 
                     try:
+                        if args.debug: self.log("Prepare Blocked Sending to ",self.send_ipport)
                         sret=TUIPPORT2SOCK[self.send_ipport].sendall(data)
                         if sret is None:
                             if args.debug: self.log ("Send to port socket ", self.send_ipport, " Success")

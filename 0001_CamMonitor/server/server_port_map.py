@@ -182,25 +182,14 @@ class SendThread(MythreadBase):
             self.log (" Starting SendThread: ",self.listen_port, " --> ", self.send_port)
             while not self.stop_thread:
                 # client not connected
-                if self.listen_port not in PORT2CONS or self.send_port not in PORT2CONS: 
-                    if args.debug: self.log ("No connected sockets on ",str(self.send_port)+"  " if self.send_port not in PORT2CONS else "", 
-                                            str(self.listen_port)+"  " if self.listen_port not in PORT2CONS else "")
+                if self.listen_port not in PORT2CONS or len(PORT2CONS[self.listen_port])<=0: #
+                    if args.debug: self.log ("No connected sockets on ",(self.listen_port))
                     sleep(SLEEPLONG)
                     continue
 
-                # threadLock_PORT2CON.acquire()
-                tep_listen_socks= PORT2CONS[self.listen_port][:]   # copy.deepcopy(PORT2CONS[self.listen_port])
-                tep_send_socks= PORT2CONS[self.send_port][:]   # copy.deepcopy(PORT2CONS[self.send_port])
-                # threadLock_PORT2CON.release()
-
-                if len(tep_listen_socks)<=0 or len(tep_send_socks)<=0: 
-                    if args.debug: self.log ("No connected sockets on ",str(self.send_port)+"  " if len(tep_send_socks)<=0 else "", 
-                                            str(self.listen_port)+"  " if len(tep_listen_socks)<=0 else "")
-                    sleep(SLEEPLONG)
-                    continue
 
                 # register all income sockets
-                for soc in tep_listen_socks:
+                for soc in PORT2CONS[self.listen_port]:
                     try:
                         self.select_sock.register(soc, selectors.EVENT_READ, self.listen_port)
                     except:
@@ -222,6 +211,12 @@ class SendThread(MythreadBase):
                     if not data:
                         self.closesock(conn)
                         continue
+
+                    # send
+                    if self.send_port not in PORT2CONS or len(PORT2CONS[self.send_port])<=0: 
+                        # if args.debug: self.log ("No connected sockets on ",(self.send_port))
+                        #sleep(SLEEPLONG)
+                        continue
                     
                     for sp in PORT2CONS[self.send_port]:
                         try:
@@ -239,7 +234,7 @@ class SendThread(MythreadBase):
                             # sleep(SLEEPSHORT)
                             #send too fast?
                             sp.setblocking(False)
-                            break
+                            # break
         finally:
             self.log ("SendThread %s closing..."%self.getName())
             self.select_sock.close()
