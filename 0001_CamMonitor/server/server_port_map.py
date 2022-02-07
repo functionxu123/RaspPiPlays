@@ -191,10 +191,15 @@ class SendThread(MythreadBase):
                 # register all income sockets
                 for soc in PORT2CONS[self.listen_port]:
                     try:
+                        threadLock_PORT2CON.acquire()
+                        soc.setblocking(False)
+                        threadLock_PORT2CON.release()
+
                         self.select_sock.register(soc, selectors.EVENT_READ, self.listen_port)
                     except:
                         continue
                     finally:
+                        threadLock_PORT2CON.release()
                         pass
 
                 events = self.select_sock.select(SLEEPSHORT)
@@ -234,7 +239,7 @@ class SendThread(MythreadBase):
                                 self.log ("sendall Error: ", str(e))
                             # sleep(SLEEPSHORT)
                             #send too fast?
-                            sp.setblocking(False)
+                            # sp.setblocking(False)
                             # break
         finally:
             self.log ("SendThread %s closing..."%self.getName())
