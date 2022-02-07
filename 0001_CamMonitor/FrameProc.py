@@ -2,6 +2,7 @@
 from importlib import import_module
 import os, copy
 import os.path as op
+from time import sleep
 from flask import Flask, render_template, Response
 import cv2, datetime
 import numpy as np
@@ -120,7 +121,7 @@ def gen(video):
         if len(frame_list) > 0:
             frame = copy.deepcopy(frame_list[-1])
         threadLock.release()
-        # sleep(0.1)
+        sleep(0.1)
         yield (b'--frame\r\n'
                b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
 
