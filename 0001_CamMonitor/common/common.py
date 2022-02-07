@@ -11,12 +11,13 @@ import os.path as op
 import ctypes, copy
 import selectors
 import inspect
+from datetime import datetime
 
 
 # 含微秒的日期时间 2018-09-06_21:54:46.205213
 dt_ms = lambda: datetime.datetime.now().strftime('%Y-%m-%d_%H:%M:%S.%f')
 
-BUFFER_SIZE = int(1024/2)
+BUFFER_SIZE = int(1024)
 
 MAXSENDTRY=6
 
