@@ -197,8 +197,7 @@ class SendThread(MythreadBase):
 
                         self.select_sock.register(soc, selectors.EVENT_READ, self.listen_port)
                     except Exception as e:
-                        if args.debug: 
-                            self.log ("select_sock.register Error: ",str(e))
+                        # if args.debug: self.log ("select_sock.register Error: ",str(e))
                         if threadLock_PORT2CON.locked(): threadLock_PORT2CON.release()
                         continue
                     finally:
