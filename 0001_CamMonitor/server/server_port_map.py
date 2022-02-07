@@ -225,7 +225,9 @@ class SendThread(MythreadBase):
                     
                     for sp in PORT2CONS[self.send_port]:
                         try:
+                            sp.setblocking(True)
                             sret=sp.sendall(data)
+                            sp.setblocking(False)
                             if sret is None:
                                 if args.debug: self.log ("Send to port socket ", self.send_port, " Success")
                             else:
@@ -235,6 +237,7 @@ class SendThread(MythreadBase):
                                 self.log ("sendall Error: ", str(e))
                             # sleep(SLEEPSHORT)
                             #send too fast?
+                            sp.setblocking(False)
                             break
         finally:
             self.log ("SendThread %s closing..."%self.getName())
