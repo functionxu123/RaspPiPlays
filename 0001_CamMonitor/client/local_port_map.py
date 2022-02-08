@@ -116,7 +116,7 @@ class SendThread(MythreadBase):
             self.log ("Staring Connection Thread: ", self.listen_ipport, " --> ", self.send_ipport)
             while not self.stop_thread:
                 #  or (not self.tryconnect(self.send_sock, self.send_ipport)
-                while ((not self.connected_listen) and (not self.tryconnect_listen(self.listen_ipport))):
+                while ((not self.connected_listen) and (not self.tryconnect_listen())):
                     sleep(SLEEPLONG)
                     continue
                 if not self.connected_listen: self.log ("Connection Listen Success: ", self.listen_ipport)
