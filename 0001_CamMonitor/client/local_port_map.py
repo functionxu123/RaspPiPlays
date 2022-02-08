@@ -125,8 +125,9 @@ class SendThread(MythreadBase):
         threadLock_TUIPPORT2SOCK.release()
 
     def clear_selector(self):
-        while len(self.select_sock.get_map().keys())>0:
-            self.select_sock.unregister(self.select_sock.get_map().keys()[0])
+        tep=[]
+        for i in self.select_sock.get_map().keys(): tep.append(i)
+        for i in tep: self.select_sock.unregister(i)
 
     
     def run(self):
