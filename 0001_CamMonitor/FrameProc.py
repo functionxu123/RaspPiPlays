@@ -7,6 +7,18 @@ from flask import Flask, render_template, Response
 import cv2, datetime
 import numpy as np
 import threading
+import argparse
+
+
+parser = argparse.ArgumentParser(description='server port map options')
+parser.add_argument('-tf',
+                    "--transfps",
+                    type=int,
+                    default=10,
+                    help='frame fps to trans')
+parser.add_argument("-d","--debug", action="store_true", default=False, help="open debug mode")
+
+args = parser.parse_args()
 
 dt_ms = lambda: datetime.datetime.now().strftime(
     '%Y-%m-%d_%H:%M:%S.%f')  # 含微秒的日期时间2018-09-06_21:54:46.205213
@@ -121,7 +133,7 @@ def gen(video):
         if len(frame_list) > 0:
             frame = copy.deepcopy(frame_list[-1])
         threadLock.release()
-        sleep(0.1)
+        sleep(1/args.transfps)
         yield (b'--frame\r\n'
                b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
 
