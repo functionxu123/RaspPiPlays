@@ -4,9 +4,7 @@
 @Date     :2022/02/06 00:11:17
 @Author      :xuhao
 '''
-from fnmatch import fnmatch
 import os, sys
-from tkinter.messagebox import NO
 
 sys.path.append("..")
 import os.path as op
