@@ -30,6 +30,7 @@ parser.add_argument('-c',
                     default="./config.json",
                     help='a path for prot map config file, in json formate')
 parser.add_argument("-d","--debug", action="store_true", default=False, help="open debug mode")
+parser.add_argument("-bs", "--blocksend",action="store_true", default=False, help="block send data process")
 
 args = parser.parse_args()
 
@@ -191,7 +192,10 @@ class SendThread(MythreadBase):
                             continue
                         
                         if args.debug: self.log("Prepare Blocked Sending to ",self.send_ipport)
+
+                        if args.blocksend: TUIPPORT2SOCK[self.send_ipport].setblocking(True)
                         sret=TUIPPORT2SOCK[self.send_ipport].sendall(data)
+                        if args.blocksend: TUIPPORT2SOCK[self.send_ipport].setblocking(False)
                         if sret is None:
                             if args.debug: self.log ("Send to port socket ", self.send_ipport, " Success")
                         else:
@@ -205,6 +209,12 @@ class SendThread(MythreadBase):
                             self.log ("send_sock.sendall Error: ",str(e))
                         #self.closesock_ipport(self.send_ipport)
                         #self.connected_send=False
+                        try:
+                            if args.blocksend and (self.send_ipport in TUIPPORT2SOCK) and (TUIPPORT2SOCK[self.send_ipport] is not None): 
+                                TUIPPORT2SOCK[self.send_ipport].setblocking(False)
+                        except:
+                            pass
+                        
                         sleep(SLEEPSHORT)
                         continue
 
