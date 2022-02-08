@@ -16,6 +16,11 @@ parser.add_argument('-tf',
                     type=int,
                     default=10,
                     help='frame fps to trans')
+parser.add_argument('-vf',
+                    "--videofps",
+                    type=int,
+                    default=20,
+                    help='video fps to record')
 parser.add_argument("-d","--debug", action="store_true", default=False, help="open debug mode")
 
 args = parser.parse_args()
@@ -200,6 +205,8 @@ class CutThread(threading.Thread):
                         vid = None
                         print("Video %s finished" % vname)
             lastframe = img
+            # fps control
+            sleep(1/args.videofps)
         print("Cut thread stoped...")
 
     def stopthread(self):
