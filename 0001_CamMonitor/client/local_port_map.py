@@ -80,11 +80,16 @@ class SendThread(MythreadBase):
         self.listen_ipport = listen_ipport
         self.send_ipport = send_ipport
 
+        self.select_sock=selectors.DefaultSelector()
+
     def tryconnect_listen(self):
         if TUIPPORT2SOCK[self.listen_ipport] is None:
+            self.clear_selector()
             threadLock_TUIPPORT2SOCK.acquire()
             TUIPPORT2SOCK[self.listen_ipport]=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            TUIPPORT2SOCK[self.listen_ipport].setblocking(False)
             threadLock_TUIPPORT2SOCK.release()
+            self.select_sock.register(TUIPPORT2SOCK[self.listen_ipport], selectors.EVENT_READ, self.listen_ipport)
             self.connected_listen=False
 
         if self.connected_listen: return True
@@ -99,7 +104,10 @@ class SendThread(MythreadBase):
         self.log('One Refreshing Socket On ', ipport)
         
         threadLock_TUIPPORT2SOCK.acquire()
-        if ipport in TUIPPORT2SOCK and (TUIPPORT2SOCK[ipport] is not None): TUIPPORT2SOCK[ipport].close()
+        if ipport in TUIPPORT2SOCK and (TUIPPORT2SOCK[ipport] is not None): 
+            self.select_sock.unregister(TUIPPORT2SOCK[ipport])
+            TUIPPORT2SOCK[ipport].close()
+
         TUIPPORT2SOCK[ipport]=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         threadLock_TUIPPORT2SOCK.release()
     
@@ -107,9 +115,20 @@ class SendThread(MythreadBase):
         self.log('One Closing Socket On ', ipport)
 
         threadLock_TUIPPORT2SOCK.acquire()
-        if ipport in TUIPPORT2SOCK and (TUIPPORT2SOCK[ipport] is not None): TUIPPORT2SOCK[ipport].close()
+        if ipport in TUIPPORT2SOCK and (TUIPPORT2SOCK[ipport] is not None): 
+            try:
+                self.select_sock.unregister(TUIPPORT2SOCK[ipport])
+            except:  
+                pass
+            TUIPPORT2SOCK[ipport].close()
         TUIPPORT2SOCK[ipport]=None
         threadLock_TUIPPORT2SOCK.release()
+
+    def clear_selector(self):
+        tep=self.select_sock.get_map()
+        for i in tep:
+            self.select_sock.unregister(i)
+
     
     def run(self):
         try:
@@ -124,12 +143,20 @@ class SendThread(MythreadBase):
 
                 # recv
                 data = b''
+                events = self.select_sock.select(SLEEPSHORT)
+
+                if TUIPPORT2SOCK[self.listen_ipport] is None: 
+                    self.connected_listen = False 
+                    continue
+
+                if len(events)<=0: continue
+
+                key, mask = events[0]
+                conn_listensock=key.fileobj
+
                 try:
-                    if TUIPPORT2SOCK[self.listen_ipport] is None: 
-                        self.connected_listen = False 
-                        continue
                     if args.debug: self.log("Prepare Blocked Reciving From ",self.listen_ipport)
-                    data = TUIPPORT2SOCK[self.listen_ipport].recv(BUFFER_SIZE)
+                    data = conn_listensock.recv(BUFFER_SIZE)
                 except:
                     data = None
 
@@ -189,6 +216,7 @@ class SendThread(MythreadBase):
             self.log ("SendThread %s closing..."%self.getName())
             if self.send_ipport in TUIPPORT2SOCK and (TUIPPORT2SOCK[self.send_ipport] is not None): TUIPPORT2SOCK[self.send_ipport].close()
             if self.listen_ipport in TUIPPORT2SOCK and (TUIPPORT2SOCK[self.listen_ipport] is not None): TUIPPORT2SOCK[self.listen_ipport].close()
+            self.select_sock.close()
             self.log ("SendThread %s Stoped..."%self.getName())
 
 
