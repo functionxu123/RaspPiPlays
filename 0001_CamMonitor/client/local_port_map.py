@@ -6,6 +6,7 @@
 '''
 from fnmatch import fnmatch
 import os, sys
+from tkinter.messagebox import NO
 
 sys.path.append("..")
 import os.path as op
@@ -53,7 +54,7 @@ def initsock():
     for i in TUIPPORT2TUIPPORT:
         TUIPPORT2SOCK[i] = None
         TUIPPORT2SOCK[TUIPPORT2TUIPPORT[i]] = None
-
+    '''
     for ipport in TUIPPORT2SOCK:
         # 创建一个TCP套接字
         ser = socket.socket(
@@ -66,6 +67,7 @@ def initsock():
 
         TUIPPORT2SOCK[ipport] = ser
         #print (ser.connect_ex(ipport))
+    '''
 
 
 # thread handle fd
@@ -74,160 +76,121 @@ class SendThread(MythreadBase):
     def __init__(self, listen_ipport, send_ipport):
         MythreadBase.__init__(self)
         self.stop_thread = False
-        self.connected = False
         self.connected_listen=False
         self.connected_send=False
 
         self.listen_ipport = listen_ipport
         self.send_ipport = send_ipport
 
-    def tryconnect(self, sock, ipport):
-        if self.connected: return True
-        ret = sock.connect_ex(ipport)
+    def tryconnect_listen(self):
+        if TUIPPORT2SOCK[self.listen_ipport] is None:
+            threadLock_TUIPPORT2SOCK.acquire()
+            TUIPPORT2SOCK[self.listen_ipport]=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            threadLock_TUIPPORT2SOCK.release()
+            self.connected_listen=False
+
+        if self.connected_listen: return True
+        ret = TUIPPORT2SOCK[self.listen_ipport].connect_ex(self.listen_ipport)
         # ErrorCode:  106 : Transport endpoint is already connected
         if ret != 0 and ret!=106:
-            self.log("Trying Connecting to ", ipport, " ErrorCode: ", ret, ":", os.strerror(ret))
+            self.log("Trying Connecting to ", self.listen_ipport, " ErrorCode: ", ret, ":", os.strerror(ret))
             return False
         return True
 
-    def closesock(self, sock):
-        if sock == self.listen_sock:
-            self.log('One Closing Socket On ', self.listen_ipport)
-            sock.close()
-            
-            self.listen_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            threadLock_TUIPPORT2SOCK.acquire()
-            TUIPPORT2SOCK[self.listen_ipport]=self.listen_sock
-            threadLock_TUIPPORT2SOCK.release()
-        else:
-            self.log('One Closing Socket On ', self.send_ipport)
-            sock.close()
-            
-            self.send_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            threadLock_TUIPPORT2SOCK.acquire()
-            TUIPPORT2SOCK[self.send_ipport]=self.send_sock
-            threadLock_TUIPPORT2SOCK.release()
-
-    def closesock_ipport(self, ipport):
-        self.log('One Closing Socket On ', ipport)
+    def refresh_sock(self, ipport):
+        self.log('One Refreshing Socket On ', ipport)
         
         threadLock_TUIPPORT2SOCK.acquire()
-        if ipport in TUIPPORT2SOCK: TUIPPORT2SOCK[ipport].close()
+        if ipport in TUIPPORT2SOCK and (TUIPPORT2SOCK[ipport] is not None): TUIPPORT2SOCK[ipport].close()
         TUIPPORT2SOCK[ipport]=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         threadLock_TUIPPORT2SOCK.release()
-
-    def run2(self):
-        try:
-            self.log ("Staring Connection Thread: ", self.listen_ipport, " --> ", self.send_ipport)
-            while not self.stop_thread:
-                if (not self.tryconnect(self.listen_sock, self.listen_ipport)) or (
-                        not self.tryconnect(self.send_sock, self.send_ipport)):
-                    sleep(5)
-                    continue
-                self.connected = True
-
-                self.log ("Connection Success: ", self.listen_ipport, " <--> ", self.send_ipport)
-
-                while (not self.stop_thread) and self.connected:
-                    data = None
-                    try:
-                        data = self.listen_sock.recv(BUFFER_SIZE)
-                    except:
-                        data = None
-
-                    if args.debug:  self.log("Recv from ", self.listen_ipport, " Got: ", len(data) if data else data)
-                    if not data:
-                        self.connected = False
-                        self.closesock(self.listen_sock)
-                        break
-
-                    try:
-                        sret=self.send_sock.sendall(data)
-                        if sret is None:
-                            if args.debug: self.log ("Send to port socket ", self.send_ipport, " Success")
-                        else:
-                            self.log ("Send to port socket ", self.send_ipport, " Failed : ", sret)
-                    except Exception as e:
-                        if args.debug: 
-                            self.log ("send_sock.sendall Error:")
-                            self.log (str(e))
-                        sleep(1)
-                        continue
-        finally:
-            self.log ("SendThread %s closing..."%self.getName())
-            self.listen_sock.close()
-            self.send_sock.close()
-            self.log ("SendThread %s Stoped..."%self.getName())
     
+    def close_sock(self, ipport):
+        self.log('One Closing Socket On ', ipport)
+
+        threadLock_TUIPPORT2SOCK.acquire()
+        if ipport in TUIPPORT2SOCK and (TUIPPORT2SOCK[ipport] is not None): TUIPPORT2SOCK[ipport].close()
+        TUIPPORT2SOCK[ipport]=None
+        threadLock_TUIPPORT2SOCK.release()
     
     def run(self):
         try:
             self.log ("Staring Connection Thread: ", self.listen_ipport, " --> ", self.send_ipport)
             while not self.stop_thread:
                 #  or (not self.tryconnect(self.send_sock, self.send_ipport)
-                while ((not self.connected_listen) and 
-                       (not self.tryconnect(TUIPPORT2SOCK[self.listen_ipport], self.listen_ipport))):
+                while ((not self.connected_listen) and (not self.tryconnect_listen(self.listen_ipport))):
                     sleep(SLEEPLONG)
                     continue
                 if not self.connected_listen: self.log ("Connection Listen Success: ", self.listen_ipport)
-                self.connected_listen = True
-
-                
+                self.connected_listen = True                
 
                 # recv
-                data = None
+                data = b''
                 try:
+                    if TUIPPORT2SOCK[self.listen_ipport] is None: 
+                        self.connected_listen = False 
+                        continue
                     if args.debug: self.log("Prepare Blocked Reciving From ",self.listen_ipport)
                     data = TUIPPORT2SOCK[self.listen_ipport].recv(BUFFER_SIZE)
                 except:
                     data = None
 
                 if args.debug:  self.log("Recv from ", self.listen_ipport, " Got: ", len(data) if data else data)
-                if not data:
+
+                if data is None:
+                    self.close_sock(self.listen_ipport)
                     self.connected_listen = False
-                    self.closesock_ipport(self.listen_ipport)
+                    continue
+                elif not data:
+                    self.connected_listen = False
+                    self.close_sock(self.listen_ipport)
                     self.connected_send= False
-                    self.closesock_ipport(self.send_ipport)
+                    self.close_sock(self.send_ipport)
                     continue
                 # send 
                 send_cnt=0
                 while send_cnt<MAXSENDTRY:
                     send_cnt+=1
 
-                    while ((not self.connected_send) and 
-                        (not self.tryconnect(TUIPPORT2SOCK[self.send_ipport], self.send_ipport))):
-                        sleep(SLEEPLONG)
-                        continue
-                    if not self.connected_send: self.log ("Connection Send Success: ", self.send_ipport)
-                    self.connected_send=True
+                    # while ((not self.connected_send) and 
+                    #     (not self.tryconnect(TUIPPORT2SOCK[self.send_ipport], self.send_ipport))):
+                    #     sleep(SLEEPLONG)
+                    #     continue
+                    # if not self.connected_send: self.log ("Connection Send Success: ", self.send_ipport)
+                    # self.connected_send=True
 
                     try:
+                        if TUIPPORT2SOCK[self.send_ipport] is None: 
+                            if args.debug: self.log("Send sock not ready: ",self.send_ipport," Waiting ...." )
+                            sleep(SLEEPSHORT)
+                            continue
+                        
                         if args.debug: self.log("Prepare Blocked Sending to ",self.send_ipport)
                         sret=TUIPPORT2SOCK[self.send_ipport].sendall(data)
                         if sret is None:
                             if args.debug: self.log ("Send to port socket ", self.send_ipport, " Success")
                         else:
                             self.log ("Send to port socket ", self.send_ipport, " Failed : ", sret)
-                            self.closesock_ipport(self.send_ipport)
-                            self.connected_send=False
+                            #self.closesock_ipport(self.send_ipport)
+                            #self.connected_send=False
                             sleep(SLEEPSHORT)
                             continue
                     except Exception as e:
                         if args.debug: 
                             self.log ("send_sock.sendall Error: ",str(e))
-                        self.closesock_ipport(self.send_ipport)
-                        self.connected_send=False
+                        #self.closesock_ipport(self.send_ipport)
+                        #self.connected_send=False
                         sleep(SLEEPSHORT)
                         continue
 
                     break
                 if send_cnt>=MAXSENDTRY:
-                    self.log ("Max Send Cnt > ",MAXSENDTRY," Discarding some data...")
+                    if args.debug: self.log ("Max Send Cnt > ",MAXSENDTRY," Discarding some data...")
                     
         finally:
             self.log ("SendThread %s closing..."%self.getName())
-            TUIPPORT2SOCK[self.send_ipport].close()
-            TUIPPORT2SOCK[self.listen_ipport].close()
+            if self.send_ipport in TUIPPORT2SOCK and (TUIPPORT2SOCK[self.send_ipport] is not None): TUIPPORT2SOCK[self.send_ipport].close()
+            if self.listen_ipport in TUIPPORT2SOCK and (TUIPPORT2SOCK[self.listen_ipport] is not None): TUIPPORT2SOCK[self.listen_ipport].close()
             self.log ("SendThread %s Stoped..."%self.getName())
 
 

@@ -94,7 +94,7 @@ class AcceptThread(MythreadBase):
                     oriport = key.data
                     con, address = key.fileobj.accept()  # 在这个位置进行等待，监听端口号
                     con.setblocking(False)
-                    self.log(" PID: ", os.getpid(), " Port: ", oriport," GetNewConnetctionFrom: ", address)
+                    self.log("PID: ", os.getpid(), " Port: ", oriport," GetNewConnetctionFrom: ", address)
 
                     threadLock_PORT2CON.acquire()
                     if oriport not in PORT2CONS:
