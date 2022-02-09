@@ -153,6 +153,10 @@ def video_feed():
 def test_response():
     return '<h1>HomeTesting</h1>'
 
+@app.route('/video')
+def video_response():
+    return render_template('video_play.html', movides=os.listdir(STOREADDR), vwidth=frame_w, vheight=frame_h, videopath=STOREADDR)
+
 
 class CutThread(threading.Thread):
 
