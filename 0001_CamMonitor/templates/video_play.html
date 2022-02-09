@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>视频展示</title>
+    <title>动作捕捉视频展示</title>
     <style>
     .box-out {
       position:relative;
@@ -35,8 +35,8 @@
 <div id="container">
 {% for movie in movies %}
     <div class="box-out" style="height:{{vheight}}px;width:{{vwidth}}px;">
-        <video class="movie box-in" data-file="{{movie}}" width="{{vwidth}}" height="{{vheight}}" controls >
-          <source src="{{videopath}}/{{movie}}" type="video/avi" />
+        <video class="movie box-in" src="{{videopath}}/{{movie}}" width="{{vwidth}}" height="{{vheight}}" controls muted>
+          <!-- <source src="{{videopath}}/{{movie}}" type="video/avi" /> -->
         </video>
         <p class="title-in" >{{movie}}</p>
     </div>
