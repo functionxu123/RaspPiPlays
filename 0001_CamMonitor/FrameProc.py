@@ -195,8 +195,7 @@ class CutThread(threading.Thread):
                         videolen / vfps <= self.thresh_lenth_time_s) or IsDiff(
                             lastframe, img, self.thresh_pixel):
                     if vid is None:
-                        fourcc = cv2.VideoWriter_fourcc(
-                            *'XVID')  #  *'MJPG'    *'FLV1'
+                        fourcc = cv2.VideoWriter_fourcc(*'MJPG')  # *'XVID'     *'FLV1'
                         vname = op.join(STOREADDR, dt_ms()) + ".avi"
                         vid = cv2.VideoWriter(vname, fourcc, vfps,
                                               (frame_w, frame_h), True)
