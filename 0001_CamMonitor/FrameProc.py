@@ -155,7 +155,8 @@ def test_response():
 
 @app.route('/video')
 def video_response():
-    return render_template('video_play.html', movides=os.listdir(STOREADDR), vwidth=frame_w, vheight=frame_h, videopath=STOREADDR)
+    movides=os.listdir(STOREADDR)
+    return render_template('video_play.html', movies=movides, vwidth=frame_w, vheight=frame_h, videopath=STOREADDR)
 
 
 class CutThread(threading.Thread):
