@@ -215,8 +215,7 @@ class CutThread(threading.Thread):
                         if args.debug: 
                             print ("ExecCmd: ", cmstr," Get: ", rett)
 
-                        if (rett>>8)==0 and op.exists(vname): 
-                            os.remove(vname)
+                        #if (rett>>8)==0 and op.exists(vname): os.remove(vname)
                         
             lastframe = img
             # fps control
