@@ -35,8 +35,8 @@
 <div id="container">
 {% for movie in movies %}
     <div class="box-out" style="height:{{vheight}}px;width:{{vwidth}}px;">
-        <video class="movie box-in" data-file="{{movie}" width="{{vwidth}}" height="{{vheight}}" controls >
-          <source src="{{videopath}}/{{movie}}" type="video/mp4" />
+        <video class="movie box-in" data-file="{{movie}}" width="{{vwidth}}" height="{{vheight}}" controls >
+          <source src="{{videopath}}/{{movie}}" type="video/avi" />
         </video>
         <p class="title-in" >{{movie}}</p>
     </div>
