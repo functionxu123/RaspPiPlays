@@ -131,3 +131,4 @@ dmypy.json
 *.png
 *.tif
 cutvideos/
+nohup.out
