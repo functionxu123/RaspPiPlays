@@ -209,12 +209,14 @@ class CutThread(threading.Thread):
                         vid = None
                         print("Video %s finished" % vname)
                         map4vname=op.splitext(vname)[0]+".mp4"
-                        cmstr="ffmpeg -i "+vname+" -vcodec h264 "+ map4vname
-                        rett=os.popen(cmstr)
+                        cmstr="ffmpeg -i "+vname+" -vcodec h264 "+ map4vname + " && rm -f " + vname +" &"
+                        #rett=os.popen(cmstr)
+                        rett=os.system(cmstr)
                         if args.debug: 
                             print ("ExecCmd: ", cmstr," Get: ", rett)
 
-                        if rett==0: os.remove(vname)
+                        if (rett>>8)==0 and op.exists(vname): 
+                            os.remove(vname)
                         
             lastframe = img
             # fps control
