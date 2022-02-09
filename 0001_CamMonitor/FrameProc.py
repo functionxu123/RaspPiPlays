@@ -155,7 +155,7 @@ def test_response():
 
 @app.route('/video')
 def video_response():
-    movides=os.listdir(STOREADDR)
+    movides=[x for x in os.listdir(STOREADDR) if x.endswith('mp4')]
     return render_template('video_play.html', movies=movides, vwidth=frame_w, vheight=frame_h, videopath=STOREADDR)
 
 
@@ -195,8 +195,8 @@ class CutThread(threading.Thread):
                         videolen / vfps <= self.thresh_lenth_time_s) or IsDiff(
                             lastframe, img, self.thresh_pixel):
                     if vid is None:
-                        fourcc = cv2.VideoWriter_fourcc(*'MJPG')  # *'XVID'     *'FLV1'
-                        vname = op.join(STOREADDR, dt_ms()) + ".mp4"
+                        fourcc = cv2.VideoWriter_fourcc(*'XVID' )  #*'MJPG'     *'FLV1'
+                        vname = op.join(STOREADDR, dt_ms()) + ".avi"
                         vid = cv2.VideoWriter(vname, fourcc, vfps,
                                               (frame_w, frame_h), True)
                         videolen = 0
@@ -208,6 +208,14 @@ class CutThread(threading.Thread):
                         vid.release()
                         vid = None
                         print("Video %s finished" % vname)
+                        map4vname=op.splitext(vname)[0]+".mp4"
+                        cmstr="ffmpeg -i "+vname+" -vcodec h264 "+ map4vname
+                        rett=os.popen(cmstr)
+                        if args.debug: 
+                            print ("ExecCmd: ", cmstr," Get: ", rett)
+
+                        if rett==0: os.remove(vname)
+                        
             lastframe = img
             # fps control
             sleep(1/args.videofps)
