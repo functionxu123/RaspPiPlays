@@ -196,7 +196,7 @@ class CutThread(threading.Thread):
                             lastframe, img, self.thresh_pixel):
                     if vid is None:
                         fourcc = cv2.VideoWriter_fourcc(*'MJPG')  # *'XVID'     *'FLV1'
-                        vname = op.join(STOREADDR, dt_ms()) + ".avi"
+                        vname = op.join(STOREADDR, dt_ms()) + ".mp4"
                         vid = cv2.VideoWriter(vname, fourcc, vfps,
                                               (frame_w, frame_h), True)
                         videolen = 0
