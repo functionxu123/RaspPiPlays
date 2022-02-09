@@ -133,9 +133,9 @@ app = Flask(__name__)
 def gen(video):
     """Video streaming generator function."""
     k=0
-    h=w=360
+    h=w=1024
     while True:
-        tep=np.zeros([h,w,3], dtype=np.uint8)
+        tep=(np.random.rand(h,w,3)*255).astype(np.uint8)
         tep[k%h]=[255,255,255]
         k+=1
         frame=GetJpegBytes(tep)
@@ -223,7 +223,3 @@ if __name__ == '__main__':
         app.run(host='0.0.0.0', port=8080, threaded=True)
     except:
         pass
-    finally:
-        #thre.stopthread()
-        #video.release()
-        #thre.join()
