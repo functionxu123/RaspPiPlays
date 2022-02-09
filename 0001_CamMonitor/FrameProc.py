@@ -127,7 +127,7 @@ def IsDiff(frame1, frame2, thresh=50) -> bool:
 
 
 # use flask to watch video
-app = Flask(__name__)
+app = Flask(__name__, static_folder="static")
 
 
 def gen(video):
