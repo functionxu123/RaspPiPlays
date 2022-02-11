@@ -21,6 +21,18 @@ parser.add_argument('-vf',
                     type=int,
                     default=20,
                     help='video fps to record')
+parser.add_argument('-w',
+                    "--width",
+                    type=int,
+                    default=640,
+                    help='video width')
+
+parser.add_argument('-h',
+                    "--height",
+                    type=int,
+                    default=480,
+                    help='video height')
+
 parser.add_argument("-d","--debug", action="store_true", default=False, help="open debug mode")
 
 args = parser.parse_args()
@@ -33,10 +45,12 @@ video = cv2.VideoCapture(0)
 if video is None:
     print("Couldn't open camera...")
     exit(0)
+
+video.set(cv2.CAP_PROP_FPS, args.videofps)#帧率 帧/秒
+video.set(cv2.CAP_PROP_FRAME_WIDTH, args.width)#宽度
+video.set(cv2.CAP_PROP_FRAME_HEIGHT, args.height)#高度
+
 '''
-video.set(cv2.CAP_PROP_FRAME_WIDTH, 1080)#宽度
-video.set(cv2.CAP_PROP_FRAME_HEIGHT, 960)#高度
-video.set(cv2.CAP_PROP_FPS, 30)#帧率 帧/秒
 video.set(cv2.CAP_PROP_BRIGHTNESS, 1)#亮度 1
 video.set(cv2.CAP_PROP_CONTRAST,40)#对比度 40
 video.set(cv2.CAP_PROP_SATURATION, 50)#饱和度 50
