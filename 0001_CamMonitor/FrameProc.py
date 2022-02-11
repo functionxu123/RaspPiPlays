@@ -169,7 +169,7 @@ def test_response():
 @app.route('/video')
 def video_response():
     mvlist=os.listdir(STOREADDR)
-    mvlist.sort()
+    mvlist.sort(reverse=True)
     movides=[x for x in mvlist if x.endswith('mp4')]
     return render_template('video_play.html', movies=movides, vwidth=frame_w, vheight=frame_h, videopath=STOREADDR)
 
