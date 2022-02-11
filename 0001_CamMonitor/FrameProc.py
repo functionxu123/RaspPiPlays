@@ -220,7 +220,7 @@ class CutThread(threading.Thread):
                         
             lastframe = img
             # fps control
-            sleep(1/args.videofps)
+            # sleep(1/args.videofps)
         print("Cut thread stoped...")
 
     def stopthread(self):
