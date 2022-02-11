@@ -209,7 +209,7 @@ class CutThread(threading.Thread):
                         vid = None
                         print("Video %s finished" % vname)
                         map4vname=op.splitext(vname)[0]+".mp4"
-                        cmstr="ffmpeg -i "+vname+" -vcodec h264 "+ map4vname + " && rm -f " + vname +" &"
+                        cmstr="ffmpeg -i "+vname+" -vcodec h264 "+ map4vname + " && rm -f " + vname +" >/dev/null 2>&1 &"
                         #rett=os.popen(cmstr)
                         rett=os.system(cmstr)
                         if args.debug: 
