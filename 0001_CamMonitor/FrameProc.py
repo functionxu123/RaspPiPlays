@@ -27,8 +27,7 @@ parser.add_argument('-w',
                     default=640,
                     help='video width')
 
-parser.add_argument('-h',
-                    "--height",
+parser.add_argument("--height",
                     type=int,
                     default=480,
                     help='video height')
