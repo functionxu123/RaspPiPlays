@@ -37,7 +37,7 @@ parser.add_argument("-d","--debug", action="store_true", default=False, help="op
 args = parser.parse_args()
 
 dt_ms = lambda: datetime.datetime.now().strftime(
-    '%Y-%m-%d_%H:%M:%S.%.3f')  # 含微秒的日期时间2018-09-06_21:54:46.205213
+    '%Y-%m-%d_%H:%M:%S.%f')  # 含微秒的日期时间2018-09-06_21:54:46.205213
 
 # Raspberry Pi camera module (requires picamera package)
 video = cv2.VideoCapture(0)
