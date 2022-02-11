@@ -82,7 +82,7 @@ def saveImage(settings, width, height, quality, diskSpaceToReserve):
     time = datetime.now()
     filename = filepath + "/" + filenamePrefix + "-%04d%02d%02d-%02d%02d%02d.jpg" % (time.year, time.month, time.day, time.hour, time.minute, time.second)
     subprocess.call("raspistill %s -w %s -h %s -t 200 -e jpg -q %s -n -o %s" % (settings, width, height, quality, filename), shell=True)
-    print "Captured %s" % filename
+    print ("Captured %s" % filename)
  
 # Keep free space above given level
 def keepDiskSpaceFree(bytesToReserve):
@@ -90,7 +90,7 @@ def keepDiskSpaceFree(bytesToReserve):
         for filename in sorted(os.listdir(filepath + "/")):
             if filename.startswith(filenamePrefix) and filename.endswith(".jpg"):
                 os.remove(filepath + "/" + filename)
-                print "Deleted %s/%s to avoid filling disk" % (filepath,filename)
+                print ("Deleted %s/%s to avoid filling disk" % (filepath,filename))
                 if (getFreeSpace() > bytesToReserve):
                     return
  
@@ -119,9 +119,9 @@ while (True):
         debugimage = Image.new("RGB",(testWidth, testHeight))
         debugim = debugimage.load()
  
-    for z in xrange(0, testAreaCount): # = xrange(0,1) with default-values = z will only have the value of 0 = only one scan-area = whole picture
-        for x in xrange(testBorders[z][0][0]-1, testBorders[z][0][1]): # = xrange(0,100) with default-values
-            for y in xrange(testBorders[z][1][0]-1, testBorders[z][1][1]):   # = xrange(0,75) with default-values; testBorders are NOT zero-based, buffer1[x,y] are zero-based (0,0 is top left of image, testWidth-1,testHeight-1 is botton right)
+    for z in range(0, testAreaCount): # = range(0,1) with default-values = z will only have the value of 0 = only one scan-area = whole picture
+        for x in range(testBorders[z][0][0]-1, testBorders[z][0][1]): # = range(0,100) with default-values
+            for y in range(testBorders[z][1][0]-1, testBorders[z][1][1]):   # = range(0,75) with default-values; testBorders are NOT zero-based, buffer1[x,y] are zero-based (0,0 is top left of image, testWidth-1,testHeight-1 is botton right)
                 if (debugMode):
                     debugim[x,y] = buffer2[x,y]
                     if ((x == testBorders[z][0][0]-1) or (x == testBorders[z][0][1]-1) or (y == testBorders[z][1][0]-1) or (y == testBorders[z][1][1]-1)):
@@ -145,7 +145,7 @@ while (True):
  
     if (debugMode):
         debugimage.save(filepath + "/debug.bmp") # save debug image as bmp
-        print "debug.bmp saved, %s changed pixel" % changedPixels
+        print ("debug.bmp saved, %s changed pixel" % changedPixels)
     # else:
     #     print "%s changed pixel" % changedPixels
  

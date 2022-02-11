@@ -22,6 +22,9 @@
 ##  2. <a name='-1'></a>硬件准备
  树莓派板子（3b+）及其配套设施（参见工程根目录下README）、CSI（CMOS Sensor Interface）摄像头（预先配置好，过程参见工程根目录下README）
 
+ ## 软件准备
+安装python库：`pip install -r requirements.txt`、安装ffmpeg库： `sudo apt install ffmpeg `
+
  ps: 如果需要实现上述功能3（内网穿透）还需要一台具有公网ip的服务器
  ***
 
