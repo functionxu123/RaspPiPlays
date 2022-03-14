@@ -11,7 +11,7 @@ import os.path as op
 import ctypes, copy
 import selectors
 import inspect
-from datetime import datetime
+import datetime
 
 
 # 含微秒的日期时间 2018-09-06_21:54:46.205213
@@ -60,4 +60,4 @@ class MythreadBase(threading.Thread):
             self.log ("Send SystemExit to %s Success"%self.getName())
     
     def log(self, *args):
-        print ("[",self.getName(), "] ", *args)
+        print (dt_ms(),"[",self.getName(), "] ", *args)
