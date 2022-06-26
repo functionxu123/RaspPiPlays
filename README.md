@@ -17,7 +17,7 @@
 	/vscode-markdown-toc-config -->
 <!-- /vscode-markdown-toc --> [toc]
  
-# RespaPIPlays
+# RaspPiPlays
 基于树梅派3b+做的一些小项目
 
 
@@ -72,7 +72,8 @@ network={
 
 1. 如果不行，试试直接把这个文件直接放到： `/etc/wpa_supplicant/wpa_supplicant.conf`
 2. 也有人说应该给wpa_supplicant.conf文件加上权限： `sudo chmod a+x wpa_supplicant.conf`
-2. 如果不行，可能是wifi没打开，那就只能先用有线连上了
+3. 如果不行，可能是wifi没打开，那就只能先用有线连上了
+4. 如果是修改了wifi密码后重新链接，注意修改`/etc/network/interfaces`文件
 
 ###  1.3. <a name='-1'></a>**小结**
 到这里如果ssh服务正常，且树莓派能正常连接网络，我们就可以查看路由器中连接设备的ip了，找到树莓派ip，在PC上用SSH连上操作了 *否则就只能自己找个屏幕、键盘什么的连上看看问题了。。。。*
