@@ -110,6 +110,7 @@ bcm2835-v4l2
 ```
 2. 上面说的修改配置后都要求重启才能生效
 3. 如果还不行可能是硬件连接问题或者静电损坏了摄像头（很容易出现这个问题，安装时候要注意防静电）
+4. 如果没有raspistill工具可以先`sudo apt update; sudo apt upgrade;` 还不行的话 `sudo apt install libraspberrypi-bin`
 
 
 ##  3. <a name='PS'></a>PS
