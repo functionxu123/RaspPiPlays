@@ -78,6 +78,13 @@ network={
 ###  1.3. <a name='-1'></a>**小结**
 到这里如果ssh服务正常，且树莓派能正常连接网络，我们就可以查看路由器中连接设备的ip了，找到树莓派ip，在PC上用SSH连上操作了 *否则就只能自己找个屏幕、键盘什么的连上看看问题了。。。。*
  ***
+2022.07.03更新：
+1. 最新的Raspberry Pi Imager工具烧系统时候可以右下角设置打开ssh、wifi和时区等，正常的话现在应该不需要再手动添加ssh文件或者设置wifi了，不过ubuntu20.04 LTS server版本系统第一次启动后好久都没连上wifi，不过重启后就好了，怀疑是第一次系统初始化没加上wifi什么的
+2. 配置zsh： `sudo apt install zsh;` 然后 `sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"`
+3. 修改sudo免密码： `sudo vim /etc/sudoers`添加一行`pi ALL=(ALL:ALL) NOPASSWD: ALL`
+4. 修复locale问题: `locale: Cannot set LC_ALL to default locale` 看报错里面提到的编码有没有在`locale -a`命令结果中，不在就安装：`sudo locale-gen zh_CN.UTF-8`
+
+ ***
 
 ##  2. <a name='-1'></a>摄像头
 这里额外买了个CSI（CMOS Sensor Interface）摄像头，安装好硬件后，记录下配置过程 **以下操作都在树莓派上进行**
@@ -86,7 +93,7 @@ network={
 
 ###  2.1. <a name='raspi-config'></a>**安装raspi-config软件**
 Ubuntu系统是不自带这个的（带了就跳过这一步），需要自行安装：
-1. 去官网找deb包安装： `http://mirrors.ustc.edu.cn/archive.raspberrypi.org/debian/pool/main/r/raspi-config/` 这里注意不要选太新的包，目前来看最新的是针对Pi4的硬件的，在Pi3上不好用，我用的： `wget http://archive.raspberrypi.org/debian/pool/main/r/raspi-config/raspi-config_20201027_all.deb`
+1. 去官网找deb包安装： `http://mirrors.ustc.edu.cn/archive.raspberrypi.org/debian/pool/main/r/raspi-config/` 这里注意不要选太新的包，目前来看最新的是针对Pi4的硬件的，在Pi3上不好用，我用的： `wget http://archive.raspberrypi.org/debian/pool/main/r/raspi-config/raspi-config_20201027_all.deb`或者`http://mirrors.ustc.edu.cn/archive.raspberrypi.org/debian/pool/main/r/raspi-config/raspi-config_20190424_all.deb`
 2. 把包安上：
     1. 先安装包： `sudo dpkg -i raspi-config_20201027_all.deb` 发现会有依赖问题
     2. 然后`sudo apt install -f` 填补上依赖
