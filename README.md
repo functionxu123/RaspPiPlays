@@ -83,6 +83,10 @@ network={
 2. 配置zsh： `sudo apt install zsh;` 然后 `sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"`
 3. 修改sudo免密码： `sudo vim /etc/sudoers`添加一行`pi ALL=(ALL:ALL) NOPASSWD: ALL`
 4. 修复locale问题: `locale: Cannot set LC_ALL to default locale` 看报错里面提到的编码有没有在`locale -a`命令结果中，不在就安装：`sudo locale-gen zh_CN.UTF-8`
+5. 安装ifconfig什么的： `sudo apt install net-tools`
+6. 换apt源：`https://mirrors.tuna.tsinghua.edu.cn/help/ubuntu-ports/`
+7. 装pip并配置：`sudo apt install python3-pip` 然后 `pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple` `pip config set install.trusted-host pypi.tuna.tsinghua.edu.cn`
+
 
  ***
 
@@ -91,9 +95,12 @@ network={
 
 *如果用官方Raspiberry PI系统应该会简单很多，这里用的Ubuntu 会有一些坑*
 
+
+*另外根据尝试，以下方法 ubuntu22.04 LTS server版本上不行，一直监测不到摄像头，目前未找到原因，怀疑是这个系统没有内置bcm2835-v4l2.ko驱动？ 看ubuntu20.04 LTS server版本上是有`/usr/lib/modules/5.4.0-1052-raspi/kernel/drivers/staging/vc04_services/bcm2835-camera/bcm2835-v4l2.ko`*
+
 ###  2.1. <a name='raspi-config'></a>**安装raspi-config软件**
 Ubuntu系统是不自带这个的（带了就跳过这一步），需要自行安装：
-1. 去官网找deb包安装： `http://mirrors.ustc.edu.cn/archive.raspberrypi.org/debian/pool/main/r/raspi-config/` 这里注意不要选太新的包，目前来看最新的是针对Pi4的硬件的，在Pi3上不好用，我用的： `wget http://archive.raspberrypi.org/debian/pool/main/r/raspi-config/raspi-config_20201027_all.deb`或者`http://mirrors.ustc.edu.cn/archive.raspberrypi.org/debian/pool/main/r/raspi-config/raspi-config_20190424_all.deb`
+1. 去官网找deb包安装： `http://mirrors.ustc.edu.cn/archive.raspberrypi.org/debian/pool/main/r/raspi-config/` 这里注意不要选太新的包，目前来看最新的是针对Pi4的硬件的，在Pi3上不好用，我用的： `wget http://archive.raspberrypi.org/debian/pool/main/r/raspi-config/raspi-config_20201027_all.deb`
 2. 把包安上：
     1. 先安装包： `sudo dpkg -i raspi-config_20201027_all.deb` 发现会有依赖问题
     2. 然后`sudo apt install -f` 填补上依赖
@@ -118,6 +125,7 @@ bcm2835-v4l2
 2. 上面说的修改配置后都要求重启才能生效
 3. 如果还不行可能是硬件连接问题或者静电损坏了摄像头（很容易出现这个问题，安装时候要注意防静电）
 4. 如果没有raspistill工具可以先`sudo apt update; sudo apt upgrade;` 还不行的话 `sudo apt install libraspberrypi-bin`
+5. 试试 `raspistill -t 200 -o image.jpg` 能拍照片到image.jpg就可以了
 
 
 ##  3. <a name='PS'></a>PS
