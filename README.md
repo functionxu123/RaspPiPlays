@@ -95,7 +95,9 @@ ethernets:
 		addresses: [192.168.1.100/24]
 		gateway4: 192.168.1.1
 ```
-最后`ifconfig`和`ip route show`都出来了就：`sudo route add default dev eth0`设置默认路由`route add -net 192.168.1.0 netmask 255.255.255.0 dev eth0`
+最后`ifconfig`和`ip route show`都能出来eth0后
+    1. 设置默认路由，将去往未知网络的数据包全部从接口eth0发出去：`sudo route add default dev eth0`
+    2. 设置默认用eth0卡：`route add default gw 192.168.1.1  dev eth0`
 
 
  ***
