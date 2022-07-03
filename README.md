@@ -111,7 +111,7 @@ Ubuntu系统是不自带这个的（带了就跳过这一步），需要自行�
 2. 路径： `Interface Option -> Camera ` Enable摄像头， 遇到问题`firmware out of date...no start_x.elf`什么的， 执行`mount /dev/mmcblk0p1 /boot` 将boot分区所在的设备号挂载到/boot上，参考： `https://blog.csdn.net/qq_34493401/article/details/107672691`
 
 ###  2.3. <a name='-1'></a>**小结**
-到这里如果摄像头启动正常，执行 `ls /dev/video*` 就能看到video0这个设备了（或者执行 `vcgencmd get_camera` 能看到 `supported=1 detected=1` 也一样）
+到这里如果摄像头启动正常，执行 `ls /dev/video*` 就能看到video0这个设备了（并且执行 `vcgencmd get_camera` 能看到 `supported=1 detected=1` 才行）
 
 如果还不行：
 1. 试试加入驱动模块进去： `sudo vim /etc/modules` 加入一行 `bcm2835-v4l2`
