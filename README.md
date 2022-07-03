@@ -86,6 +86,16 @@ network={
 5. 安装ifconfig什么的： `sudo apt install net-tools`
 6. 换apt源：`https://mirrors.tuna.tsinghua.edu.cn/help/ubuntu-ports/`
 7. 装pip并配置：`sudo apt install python3-pip` 然后 `pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple` `pip config set install.trusted-host pypi.tuna.tsinghua.edu.cn`
+8. 同时连接wifi和有线时，默认当启动一个网络成功后会禁用另一个，可以通过设置静态ip修改为同时启用,参考：`https://blog.csdn.net/qq_38803262/article/details/122926137` 具体来讲是需要在`/etc/netplan/50-cloud-init.yaml`中的network项下面加入自己的ip配置后reboot（手动启动命令为：`ifconfig eth0 up`）
+```
+ethernets:
+	eth0:
+		dhcp4: false
+		optional: true
+		addresses: [192.168.1.100/24]
+		gateway4: 192.168.1.1
+```
+最后`ifconfig`和`ip route show`都出来了就：`sudo route add default dev eth0`设置默认路由`route add -net 192.168.1.0 netmask 255.255.255.0 dev eth0`
 
 
  ***
